@@ -81,6 +81,7 @@ label {
 
 .name-input:focus {
     outline: ridge;
+    background-color: #F7F7F8;
 }
   
 .save-button {
@@ -95,4 +96,3 @@ label {
     cursor: pointer;
     text-align: center;
 }
-  
