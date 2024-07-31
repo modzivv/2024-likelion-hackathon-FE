@@ -192,7 +192,7 @@ function MainApp() {
             오늘의 나에게 칭찬할 점을 남겨주세요!</div>
           <button
             className="quiz-button"
-            onClick={() => handleButtonClick('daily-quiz')}>
+            onClick={() => handleButtonClick('praisemyself')}>
           </button>
         </div>
 

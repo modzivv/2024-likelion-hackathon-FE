@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Settings.css';
 import ic_back from '../../assets/icon-back.png';
 
 const Settings = () => {
   const [showPopup, setShowPopup] = useState(false);
+  const navigate = useNavigate();
 
   const handleDeleteAccount = () => {
     setShowPopup(true);
@@ -14,10 +16,59 @@ const Settings = () => {
     setShowPopup(false);
   };
 
-  const handleConfirmDelete = () => {
-    // 나중에 계정 삭제 로직 추가
-    alert('계정이 삭제되었습니다.');
-    setShowPopup(false);
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await axios.delete('http://localhost:8080/members/delete', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (response.status === 200) {
+        alert('계정이 성공적으로 삭제되었습니다.');
+        localStorage.removeItem('jwtToken'); // JWT 토큰 삭제
+        navigate('/login'); // 로그인 페이지로 리디렉션
+      } else {
+        alert('계정 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('계정 삭제 중 오류 발생:', error);
+      alert('계정 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setShowPopup(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await axios.post('http://localhost:8080/members/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (response.status === 200) {
+        localStorage.removeItem('jwtToken'); // JWT 토큰 삭제
+        navigate('/login'); // 로그인 페이지로 리디렉션
+      } else {
+        alert('로그아웃에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('로그아웃 중 오류 발생:', error);
+      alert('로그아웃 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -33,7 +84,7 @@ const Settings = () => {
         <Link to='/settings/password' className='settings-link' style={{ textDecoration: 'none'}}>
           <div className='settings-password'>비밀번호 설정</div>
         </Link>
-        <div className='settings-logout'>로그아웃</div>
+        <div className='settings-logout' onClick={handleLogout}>로그아웃</div>
         <div className='settings-delete' onClick={handleDeleteAccount}>계정 삭제하기</div>
       </div>
       {showPopup && (
@@ -50,6 +101,5 @@ const Settings = () => {
     </div>
   );
 };
-
 
 export default Settings;
