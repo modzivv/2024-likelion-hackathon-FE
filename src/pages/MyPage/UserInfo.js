@@ -28,7 +28,6 @@ const UserInfo = () => {
         });
   
         if (response.status === 200) {
-          console.log(response.data); // userData 객체 확인
           setUserData(response.data);
         } else {
           setError('사용자 정보를 불러오는데 실패했습니다.');
@@ -41,7 +40,6 @@ const UserInfo = () => {
   
     fetchUserData();
   }, []);
-  
 
   if (error) {
     return <div>{error}</div>;
@@ -51,9 +49,14 @@ const UserInfo = () => {
     return <div>로딩 중...</div>;
   }
 
-  // profileImgPath
-  // 프로필 설정 전이면 기본 이미지로 설정
-  const profileImage = userData.profileImgPath || img_basic;
+
+  // const profileImage = userData.profileImgPath || img_basic;
+  
+  // profileImgPath가 웹 경로인지 확인하고, 아닐 경우 웹 경로로 변환
+  const profileImage = userData.profileImgPath 
+  ? `http://localhost:8080${userData.profileImgPath}` 
+  : img_basic;
+
 
   return (
     <div className='user-info-container'>

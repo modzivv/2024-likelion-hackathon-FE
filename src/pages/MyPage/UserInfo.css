@@ -34,11 +34,12 @@
   background-color: #FFFFFF;
   border-radius: 13px;
 }
-  
+
 .user-img {
   width: 64px;
   height: 64px;
   margin-left: 8px;
+  border-radius: 50%;
 }  
 
 .user-detail {

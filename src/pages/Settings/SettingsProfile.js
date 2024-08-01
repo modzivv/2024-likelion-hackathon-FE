@@ -78,6 +78,7 @@ const SettingsProfile = () => {
         formData.append('profileImage', profileImageFile);
       }
       
+      
       const response = await axios.patch('http://localhost:8080/members/updateProfile', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
