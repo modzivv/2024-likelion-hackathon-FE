@@ -73,6 +73,7 @@ function MyPage() {
     <div>
       <UserInfo 
         name={userData.name} 
+        profileImgPath={userData.profileImgPath}
         daysManaged={userData.daysSinceJoined} 
         mealManagement={userData.totalFoodDiaryCount} 
         complimentDone={userData.complimentCnt} 

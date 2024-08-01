@@ -66,20 +66,25 @@ const SettingsProfile = () => {
         alert('로그인이 필요합니다.');
         return;
       }
-
+      
+      // FormData 객체 생성
       const formData = new FormData();
-      formData.append('profileDto', JSON.stringify({ name }));
+      
+      // 이름 변경, profileDto를 JSON 문자열로 추가해서 반영
+      formData.append('profileDto', new Blob([JSON.stringify({ name })], { type: 'application/json' }));
+
+      // 이미지 파일 추가
       if (profileImageFile) {
         formData.append('profileImage', profileImageFile);
       }
-
+      
       const response = await axios.patch('http://localhost:8080/members/updateProfile', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         }
       });
-
+  
       if (response.status === 200) {
         alert('프로필이 성공적으로 업데이트되었습니다.');
       } else {
@@ -90,6 +95,7 @@ const SettingsProfile = () => {
       alert('프로필 업데이트 중 오류가 발생했습니다.');
     }
   };
+  
 
   return (
     <div className='settings-profile-container'>

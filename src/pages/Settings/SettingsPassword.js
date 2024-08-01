@@ -41,7 +41,7 @@ const SettingsPassword = () => {
     } else if (step === 2) {
       try {
         if (newPassword !== confirmPassword) {
-          alert('새로운 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+          alert('비밀번호가 서로 일치하지 않습니다.');
           return;
         }
 

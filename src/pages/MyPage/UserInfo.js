@@ -19,15 +19,16 @@ const UserInfo = () => {
           setError('로그인이 필요합니다.');
           return;
         }
-
+  
         const response = await axios.get('http://localhost:8080/members/mypage', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           }
         });
-
+  
         if (response.status === 200) {
+          console.log(response.data); // userData 객체 확인
           setUserData(response.data);
         } else {
           setError('사용자 정보를 불러오는데 실패했습니다.');
@@ -37,9 +38,10 @@ const UserInfo = () => {
         setError('데이터를 불러오는 중 오류가 발생했습니다.');
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
 
   if (error) {
     return <div>{error}</div>;
@@ -49,8 +51,9 @@ const UserInfo = () => {
     return <div>로딩 중...</div>;
   }
 
+  // profileImgPath
   // 프로필 설정 전이면 기본 이미지로 설정
-  const displayImage = userData.profileImgPath || img_basic;
+  const profileImage = userData.profileImgPath || img_basic;
 
   return (
     <div className='user-info-container'>
@@ -67,7 +70,7 @@ const UserInfo = () => {
       </header>
       <div className='user-info'>
         <div className='user-info-img'>
-          <img src={displayImage} alt='user' className='user-img' />
+          <img src={profileImage} alt='user' className='user-img' />
         </div>
         <div className='user-detail'>
           <div className='user-name'>{userData.name} 님</div>
