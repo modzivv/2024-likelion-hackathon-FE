@@ -9,6 +9,7 @@ const SettingsProfile = () => {
   const [name, setName] = useState('');
   const [profileImage, setProfileImage] = useState(img_basic); // 기본 이미지로 초기화
   const [profileImageFile, setProfileImageFile] = useState(null);
+  const [useBasicImage, setUseBasicImage] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -50,6 +51,7 @@ const SettingsProfile = () => {
     if (e.target.files && e.target.files[0]) {
       setProfileImage(URL.createObjectURL(e.target.files[0]));
       setProfileImageFile(e.target.files[0]);
+      setUseBasicImage(false);
     }
   };
 
@@ -57,6 +59,7 @@ const SettingsProfile = () => {
   const handleSetToDefault = () => {
     setProfileImage(img_basic);
     setProfileImageFile(null); // 파일 선택 해제
+    setUseBasicImage(true); // 기본 이미지 사용 표시
   };
 
   const handleSave = async () => {
@@ -71,12 +74,17 @@ const SettingsProfile = () => {
       const formData = new FormData();
       
       // 이름 변경, profileDto를 JSON 문자열로 추가해서 반영
-      formData.append('profileDto', new Blob([JSON.stringify({ name })], { type: 'application/json' }));
-
+      // formData.append('profileDto', new Blob([JSON.stringify({ name })], { type: 'application/json' }));
+      formData.append('profileDto', new Blob([JSON.stringify({ name, profileImgPath: useBasicImage ? '' : undefined })], { type: 'application/json' }));
+      
       // 이미지 파일 추가
+      // 기본 이미지 변경 시 profileImageFile이 null임을 확인
       if (profileImageFile) {
         formData.append('profileImage', profileImageFile);
-      }
+      } 
+      // else {
+      //   formData.append('profileImagePath', ''); // 기본 이미지로 설정할 경우
+      // }
       
       
       const response = await axios.patch('http://localhost:8080/members/updateProfile', formData, {

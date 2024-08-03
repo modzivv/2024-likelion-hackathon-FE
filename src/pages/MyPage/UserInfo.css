@@ -40,6 +40,7 @@
   height: 64px;
   margin-left: 8px;
   border-radius: 50%;
+  object-fit: cover; /* 이미지가 박스에 맞게 조절됨 */
 }  
 
 .user-detail {
