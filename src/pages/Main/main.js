@@ -22,6 +22,7 @@ function MainApp() {
   const [date, setDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [meals, setMeals] = useState([]);
+  const [mealDetails, setMealDetails] = useState(null); // 식사 상세 정보를 저장할 상태
   const navigate = useNavigate();
 
   // 사용자 이름 가져오기
@@ -38,10 +39,12 @@ function MainApp() {
 
       try {
         const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+        console.log('식사 기록 가져오기 날짜:', formattedDate);
+
         const response = await axios.get(`http://localhost:8080/api/fooddiaries/${formattedDate}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         setMeals(response.data);
       } catch (err) {
         console.error('API 요청 중 오류 발생:', err.response?.data || err.message);
@@ -55,12 +58,49 @@ function MainApp() {
     fetchMeals();
   }, [selectedDate, navigate]);
 
+  const fetchMealDetails = async (date, foodDiaryId) => {
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+  
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    try {
+      const response = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${formattedDate}/${foodDiaryId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+  
+      console.log('Full response object:', response); // 전체 응답 객체 로그
+      console.log('Response data:', response.data); // 데이터 로그
+  
+      setMealDetails(response.data);
+      navigate('/combined-meal-report', { state: { mealDetails: response.data } });
+    } catch (err) {
+      if (err.response) {
+        console.error('API 요청 중 오류 발생:', err.response.data);
+      } else {
+        console.error('API 요청 중 오류 발생:', err.message);
+      }
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('jwtToken');
+        navigate('/login');
+      }
+    }
+  };
+  
+
   const handleViewChange = (event) => {
     setView(event.target.value);
   };
 
-  const handleButtonClick = (page, mealId) => {
-    navigate(`/${page}`, { state: { selectedDate, mealId } });
+  // 식사 기록 클릭 시 상세 정보 가져오기
+  const handleButtonClick = (page, foodDiaryId) => {
+    if (foodDiaryId) {
+      fetchMealDetails(foodDiaryId); // 식사 기록 ID만 넘겨줍니다
+    } else {
+      navigate(`/${page}`, { state: { selectedDate } });
+    }
   };
 
   const handleNextWeek = () => {
@@ -145,7 +185,6 @@ function MainApp() {
       );
     });
   };
-  
 
   const handleStartMeal = () => {
     navigate('/meal-record', { state: { selectedDate, initialTime: new Date() } });

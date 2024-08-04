@@ -102,10 +102,14 @@ const MealRecord = () => {
             const currentTime = new Date().toISOString();
             localStorage.setItem('mealStartTime', currentTime);
             localStorage.setItem('foodDiaryId', response.data.id);
+            localStorage.setItem('selectedDate', date.toISOString()); // 날짜를 로컬 스토리지에 저장
+
             console.log('현재 시간 로컬 스토리지에 저장됨:', currentTime);
             console.log('FoodDiaryId 로컬 스토리지에 저장됨:', response.data.id);
+            console.log('저장된 날짜:', localStorage.getItem('selectedDate')); // 저장된 날짜 확인
 
-            navigate('/meal-guide', { state: { selectedDate: formattedDate, initialTime: new Date() } });
+            navigate('/meal-guide');
+
         } catch (error) {
             console.error('식사 기록 제출 오류:', error);
 

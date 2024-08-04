@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './meal-end.css';
 import moment from 'moment';
@@ -27,47 +27,32 @@ const symptoms = {
 };
 
 const MealEnd = () => {
-    const { date: urlDate } = useParams(); // URL 파라미터에서 date 가져오기
-    const location = useLocation();
     const [activeFeeling, setActiveFeeling] = useState('');
     const [selectedSymptoms, setSelectedSymptoms] = useState([]);
     const [otherSymptom, setOtherSymptom] = useState('');
     const [memo, setMemo] = useState('');
     const [foodDiaryId, setFoodDiaryId] = useState('');
-    const [date, setDate] = useState(null);
+    const [date, setDate] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
+        // 로컬 스토리지에서 날짜를 가져옵니다.
+        const storedDate = localStorage.getItem('selectedDate');
+        if (storedDate) {
+            setDate(moment(storedDate).format('YYYY-MM-DD'));
+        } else {
+            console.error('날짜가 로컬 스토리지에 없습니다.');
+            navigate('/main');
+        }
+
         const storedFoodDiaryId = localStorage.getItem('foodDiaryId');
         if (storedFoodDiaryId) {
             setFoodDiaryId(storedFoodDiaryId);
         } else {
-            console.error('Food Diary ID not found in local storage');
+            console.error('식사 일기 ID가 로컬 스토리지에 없습니다.');
             navigate('/main');
-            return;
         }
-
-        // `date`가 URL 파라미터로 전달된 경우
-        if (urlDate) {
-            setDate(moment(urlDate).format('YYYY-MM-DD'));
-        } else {
-            // `location.state`에서 `date`를 가져오는 경우
-            const { selectedDate = '' } = location.state || {};
-            if (selectedDate) {
-                setDate(moment(selectedDate).format('YYYY-MM-DD'));
-            } else {
-                // `date`를 로컬 스토리지에서 가져오는 경우
-                const storedDate = localStorage.getItem('selectedDate');
-                if (storedDate) {
-                    setDate(moment(storedDate).format('YYYY-MM-DD'));
-                } else {
-                    console.error('Date not found in location state and local storage');
-                    navigate('/main');
-                    return;
-                }
-            }
-        }
-    }, [location.state, navigate, urlDate]);
+    }, [navigate]);
 
     const handleFeelingClick = (feeling) => {
         setActiveFeeling(feeling);
@@ -96,10 +81,8 @@ const MealEnd = () => {
 
     const completeMealRecord = async () => {
         const token = localStorage.getItem('jwtToken');
-        const mealEndTime = localStorage.getItem('mealEndTime');
-
-        if (!token || !mealEndTime || !foodDiaryId || !date) {
-            console.error('Token, meal end time, foodDiaryId, or date missing');
+        if (!token || !foodDiaryId || !date) {
+            console.error('Token, foodDiaryId, or date missing');
             return;
         }
 
@@ -111,6 +94,9 @@ const MealEnd = () => {
             symptoms: symptomsToSend,
             memo
         };
+
+        console.log('Request Body:', requestBody);
+
 
         try {
             const response = await axios.post(`http://localhost:8080/api/foodcomplete/${date}`, requestBody, {
