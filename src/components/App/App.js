@@ -12,6 +12,7 @@ import PositiveMealAnalysis from '../../pages/MyPage/PositiveMealAnalysis';
 import TriggerAnalysis from '../../pages/MyPage/TriggerAnalysis';
 import UserInfo from '../../pages/MyPage/UserInfo';
 import WeeklyReport from '../../pages/MyPage/WeeklyReport';
+import MyPage from '../../pages/MyPage/MyPage'; // 새로운 MyPage 컴포넌트
 
 import Login from '../../pages/Login/Login'; 
 import Join from '../../pages/Join/Join'; 
@@ -24,10 +25,6 @@ import CombinedMealReport from '../../pages/CombinedMealReport/CombinedMealRepor
 import Oauth2RedirectHandler from '../../components/Oauth2RedirectHandler';
 
 function App() {
-
-  const startDate = '7.22';
-  const endDate = '7.28';
-
   return (
     <MealProvider>
       <Router>
@@ -41,6 +38,7 @@ function App() {
             <Route path="/meal-record" element={<MealRecord />} />
             <Route path="/meal-guide" element={<MealGuide />} />
             <Route path="/meal-end" element={<MealEnd />} />
+<<<<<<< HEAD
             <Route path="/combined-meal-report" element={<CombinedMealReport />} />
             <Route path='/mypage' element={
               <>
@@ -51,6 +49,10 @@ function App() {
                 <PositiveMealAnalysis />
               </>
             } />
+=======
+            <Route path="/meal-report/:mealId" element={<CombinedMealReport />} />
+            <Route path='/mypage' element={<MyPage />} />
+>>>>>>> jihye
             <Route path='/settings' element={<Settings />} />
             <Route path='/settings/profile' element={<SettingsProfile />} />
             <Route path='/settings/password' element={<SettingsPassword />} />
@@ -62,5 +64,4 @@ function App() {
     </MealProvider>
   );
 }
-
 export default App;

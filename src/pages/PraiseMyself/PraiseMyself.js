@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PraiseMyself.css';
 
 const guide = [
   "오늘 나에게 바뀐 점이 있나요?",
   "바뀐 점들 중 어떤 점이 가장 마음에 드나요?",
-  "그 점을 이용하여 나에게 칭찬을\n남겨주세요."
+  "그 점을 이용하여 나에게 칭찬을 남겨주세요."
 ];
 
-const keywords = ['살', '마른'];
+const keywords = ['살', '비만', '마른', '모공', '여드름', '턱선', '볼살', '허리선', '종아리', '체형', '쌍커풀', '쌍꺼풀', '쌍카풀', '이중턱', '턱살',
+  '체지방', '팔뚝', '목선', '쇄골', '골반', '주름', '직각어꺠', '직각 어깨', '콧대', '턱 라인', '턱라인', '팔라인', '팔 라인', '다리 라인', '다리라인', '중안부', '코끝', '콧볼',
+  '마른', '오똑', '날씬', '잘록', '굵은', '굵다', '통통', '얇은', '얇다', '작은', '작다', '칙칙', '짧은', '짧다', '창백', '못생', '얼굴이 작', '비율이 좋', '비율이 안', '비율이 이상'];
 
 const PraiseMyself = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(["", "", ""]);
   const [error, setError] = useState('');
   const [apiError, setApiError] = useState('');
+  const navigate = useNavigate(); // useNavigate 훅 초기화
 
   const handleNext = () => {
     const currentAnswer = answers[step];
@@ -28,7 +32,6 @@ const PraiseMyself = () => {
       if (step < guide.length - 1) {
         setStep(step + 1);
       } else {
-        // 마지막 질문 완료 시
         submitCompliments();
       }
     }
@@ -50,20 +53,29 @@ const PraiseMyself = () => {
     };
 
     try {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        setApiError('로그인이 필요합니다.');
+        return;
+      }
+
       const response = await fetch('http://localhost:8080/compliments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QxQGV4YW1wbGUuY29tIiwicm9sZSI6Iltjb20ubGlrZWxpb24xMnRoLnBpb25lZXJfMm5lMS5qd3QuQ3VzdG9tVXNlckRldGFpbHMkMUA1MGYyM2ZdIiwiaWF0IjoxNzIyMTc0ODQzLCJleHAiOjE3MjIxNzg0NDN9.r8KSgC0ffiHmLHfmeQWCNDID4MUAm5NbQTU99XJtV70' // 여기에 실제 JWT 토큰을 넣어야 합니다.
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(compliments)
       });
 
       if (response.ok) {
-        alert('칭찬일기가 성공적으로 저장되었습니다!');
+        alert('칭찬 일기가 성공적으로 저장되었습니다!');
+        navigate('/main'); // 다 쓰고나면 메인으로 이동
+      } else if (response.status === 500) {
+        setApiError('이미 오늘의 칭찬 일기를 작성했어요.');
       } else {
         const errorData = await response.json();
-        setApiError(errorData.message || '칭찬일기 저장에 실패했습니다.');
+        setApiError(errorData.message || '칭찬 일기 저장에 실패했습니다.');
       }
     } catch (error) {
       setApiError('네트워크 오류가 발생했습니다. 나중에 다시 시도해주세요.');
@@ -84,7 +96,7 @@ const PraiseMyself = () => {
             placeholder='내 답변 입력'
             value={answers[step]}
             onChange={handleChange}
-            className={`answer-input ${error ? 'error-input' : ''}`}  // 오류 시 'error-input' 클래스 추가
+            className={`answer-input ${error ? 'error-input' : ''}`}
           />
           {error && <p className='error-message'>{error}</p>}
           {apiError && <p className='error-message'>{apiError}</p>}
