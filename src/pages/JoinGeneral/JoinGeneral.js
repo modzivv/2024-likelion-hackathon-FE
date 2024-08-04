@@ -3,34 +3,75 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../pages/JoinGeneral/JoinGeneral.css';
 
-
 const JoinGeneral = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleJoin = async () => {
-    if (email && password && password === confirmPassword) {
-      try {
-        const response = await axios.post('https://your-api-endpoint.com/register', {
-          name,
-          email,
-          password,
-        });
-        if (response.status === 200) {
-          navigate('/main');
-        } else {
-          alert('회원가입에 실패했습니다.');
+    if (!email || !password || !confirmPassword) {
+      setError('이메일과 비밀번호를 입력해 주세요.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('비밀번호는 최소 8자 이상이어야 합니다.');
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('유효한 이메일 주소를 입력해 주세요.');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:8080/members/join', { 
+        name,
+        email,
+        password,
+        confirmPassword
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        alert('회원가입 중 오류가 발생했습니다.');
+      });
+
+      if (response.status === 201) {
+
+
+        // 성공적으로 회원가입이 되면 localStorage에 데이터 저장
+        localStorage.setItem('name', name);
+        localStorage.setItem('username', email);
+        localStorage.setItem('password', password);
+
+        navigate('/login');
+      } else {
+        setError('회원가입에 실패했습니다.');
       }
-    } else if (password !== confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
-    } else {
-      alert('이메일과 비밀번호를 입력해 주세요');
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 400) {
+          setError('잘못된 입력입니다.');
+        } else {
+          setError('서버 오류가 발생했습니다.');
+        }
+      } else {
+        setError('서버에 연결할 수 없습니다.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,10 +110,18 @@ const JoinGeneral = () => {
         />
       </div>
 
+      {error && <p className="error-message">{error}</p>}
+
       <p className='join-comment'>
         이미 회원이신가요? <a href="#!" onClick={handleLoginClick}>로그인</a>
       </p>
-      <button className="join-general-button" onClick={handleJoin}>회원가입</button>
+      <button
+        className="join-general-button"
+        onClick={handleJoin}
+        disabled={loading}
+      >
+        {loading ? '회원가입 중...' : '회원가입'}
+      </button>
     </div>
   );
 };

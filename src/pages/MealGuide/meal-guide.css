@@ -27,7 +27,7 @@
 
 .timer {
     font-size: 48px;
-    margin: 50px 0; /* 위아래 여백 */
+    margin: 60px 0; /* 위아래 여백 */
     text-align: center;
 }
 
@@ -105,8 +105,9 @@
 
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%); /* 모달을 화면의 중앙으로 조정 */
     width: 100%;
     height: 100%;
     display: flex;
@@ -117,32 +118,56 @@
 
 .modal-content {
     background-color: white;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 20px; /* 모달 패딩 */
+    border-radius: 15px; /* 모달 둥글기 */
     text-align: center;
-    width: 250px;
+    width: 320px; /* 모달 너비 */
+    height: 200px; /* 모달 세로 크기 줄임 */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 버튼과 문장 사이의 공간 조정 */
 }
 
 .modal-content p {
-    margin-bottom: 20px;
-    font-size: 14px;
+    margin-bottom: 10px; /* 간격 조정 */
+    font-size: 16px; /* 글씨 크기 */
 }
 
-.modal-content button {
-    margin: 5px;
-    padding: 10px 20px;
-    font-size: 14px;
+.modal-content p.bold {
+    font-weight: bold; /* 글씨 굵기 증가 */
+    font-size: 18px; /* 글씨 크기 */
+    margin-bottom: 10px; /* 밑에 문장과의 간격 */
+}
+
+.modal-content p:not(.bold) {
+    font-weight: normal; /* 기본 글씨 굵기 */
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between; /* 버튼 사이 공간 분배 */
+}
+
+.button-container button {
+    width: 136px; /* 버튼 너비 */
+    height: 48px; /* 버튼 높이 */
+    font-size: 14px; /* 버튼 글씨 크기 */
+    line-height: 48px; /* 버튼 텍스트 수직 정렬 */
+    text-align: center; /* 버튼 텍스트 수평 정렬 */
     cursor: pointer;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px; /* 버튼 둥글기 */
+    margin: 0; /* 버튼 간격 제거 */
 }
 
-.modal-content button:first-of-type {
-    background-color: lightgray;
+.button-container button:first-of-type {
+    background-color: #ECEDEE; /* 버튼 배경색 */
 }
 
-.modal-content button:last-of-type {
-    background-color: black;
+.button-container button:last-of-type {
+    background-color: black; /* 버튼 배경색 */
     color: white;
 }
+
+
