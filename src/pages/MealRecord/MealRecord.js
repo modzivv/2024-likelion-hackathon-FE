@@ -1,31 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import TimePicker from 'react-ios-time-picker';
-import { useMealContext } from '../../MealContext';
+import axios from 'axios';
+import moment from 'moment';
 import '../../pages/MealRecord/meal-record.css';
 
 const emotions = {
-    comfortable: { text: '편안해요' },
-    joyful: { text: '즐거워요' },
-    neutral: { text: '무난해요' },
-    guilt: { text: '죄책감들어요' },
-    irritated: { text: '짜증나요' },
-    anxious: { text: '불안해요' },
-    lonely: { text: '외로워요' }
-};
-
-const formatTime = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) {
-        return ''; // Invalid date handling
-    }
-
-    const formatter = new Intl.DateTimeFormat('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'Asia/Seoul'
-    });
-    return formatter.format(date).replace('AM', '오전').replace('PM', '오후');
+    COMFORTABLE: { text: '편안해요' },
+    HAPPY: { text: '즐거워요' },
+    EASY: { text: '무난해요' },
+    GUILT: { text: '죄책감들어요' },
+    IRRITATE: { text: '짜증나요' },
+    ANXIOUS: { text: '불안해요' },
+    LONELY: { text: '외로워요' }
 };
 
 const formatDate = (date) => {
@@ -40,112 +26,135 @@ const formatDate = (date) => {
 const MealRecord = () => {
     const location = useLocation();
     const { state } = location;
-    const initialTime = state?.initialTime;
     const selectedDate = state?.selectedDate;
-    const mealId = state?.mealId;
     const navigate = useNavigate();
-    const { addMealData, getMealDataById } = useMealContext();
 
-    const existingMeal = mealId ? getMealDataById(mealId) : null;
-
-    const [activeMeal, setActiveMeal] = useState(existingMeal?.mealType || null);
-    const [activeWho, setActiveWho] = useState(existingMeal?.who || null);
-    const [activeWhere, setActiveWhere] = useState(existingMeal?.where || null);
-    const [mealImage, setMealImage] = useState(existingMeal?.mealImage || null);
-    const [activeFeeling, setActiveFeeling] = useState(existingMeal?.feeling || null);
-    const [menu, setMenu] = useState(existingMeal?.menu || '');
-    const [otherWho, setOtherWho] = useState(existingMeal?.otherWho || '');
-    const [otherWhere, setOtherWhere] = useState(existingMeal?.otherWhere || '');
-    const [time, setTime] = useState(formatTime(existingMeal?.time ? new Date(existingMeal.time) : initialTime ? new Date(initialTime) : new Date()));
-    const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
-    const [date, setDate] = useState(selectedDate ? new Date(selectedDate) : new Date());
+    const [eatingType, setEatingType] = useState(null);
+    const [eatingWith, setEatingWith] = useState(null);
+    const [eatingWhere, setEatingWhere] = useState(null);
+    const [photoUrl, setPhotoUrl] = useState(null);
+    const [feeling, setFeeling] = useState(null);
+    const [menuName, setMenuName] = useState('');
+    const [otherWho, setOtherWho] = useState('');
+    const [otherWhere, setOtherWhere] = useState('');
+    const [date, setDate] = useState(() => {
+        return selectedDate ? new Date(selectedDate) : new Date();
+    });
+    const [time, setTime] = useState('20:00');
 
     useEffect(() => {
-        if (initialTime) {
-            setTime(formatTime(new Date(initialTime)));
-        }
         if (selectedDate) {
             setDate(new Date(selectedDate));
         }
-    }, [initialTime, selectedDate]);
+    }, [selectedDate]);
 
     const handleOptionClick = (optionType, value) => {
-        switch(optionType) {
-            case 'meal':
-                setActiveMeal(value);
+        switch (optionType) {
+            case 'eatingType':
+                setEatingType(value.toUpperCase());
                 break;
-            case 'who':
-                setActiveWho(value);
+            case 'eatingWith':
+                setEatingWith(value.toUpperCase());
                 break;
-            case 'where':
-                setActiveWhere(value);
+            case 'eatingWhere':
+                setEatingWhere(value.toUpperCase());
                 break;
             default:
                 break;
         }
     };
 
-    const startMeal = () => {
-        if (isFormComplete()) {
-            const newMeal = {
-                date: date.toISOString(),  // Save as ISO string for consistency
-                time,
-                mealType: activeMeal,
-                who: activeWho,
-                where: activeWhere,
-                feeling: activeFeeling,
-                menu,
-                otherWho,
-                otherWhere,
-                mealImage
-            };
+    const startMeal = async () => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            console.error('토큰이 없습니다');
+            window.location.href = '/login';
+            return;
+        }
 
-            if (mealId) {
-                addMealData(mealId, newMeal); // Update existing meal record
+        const foodDiaryDto = {
+            time: time,
+            eatingType: eatingType,
+            menuName: menuName,
+            eatingWith: eatingWith,
+            eatingWhere: eatingWhere,
+            feeling: feeling,
+        };
+
+        const formData = new FormData();
+        formData.append('foodDiaryDto', new Blob([JSON.stringify(foodDiaryDto)], { type: 'application/json' }));
+
+        const photoFileInput = document.getElementById('image-upload');
+        if (photoFileInput && photoFileInput.files.length > 0) {
+            formData.append('photoFile', photoFileInput.files[0]);
+        }
+
+        try {
+            const formattedDate = moment(date).format('YYYY-MM-DD');
+            const response = await axios.post(`http://localhost:8080/api/fooddiaries/${formattedDate}`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('식사 기록이 성공적으로 제출되었습니다:', response.data);
+
+            const currentTime = new Date().toISOString();
+            localStorage.setItem('mealStartTime', currentTime);
+            localStorage.setItem('foodDiaryId', response.data.id);
+            localStorage.setItem('selectedDate', date.toISOString()); // 날짜를 로컬 스토리지에 저장
+
+            console.log('현재 시간 로컬 스토리지에 저장됨:', currentTime);
+            console.log('FoodDiaryId 로컬 스토리지에 저장됨:', response.data.id);
+            console.log('저장된 날짜:', localStorage.getItem('selectedDate')); // 저장된 날짜 확인
+
+            navigate('/meal-guide');
+
+        } catch (error) {
+            console.error('식사 기록 제출 오류:', error);
+
+            if (error.response) {
+                console.error('응답 상태:', error.response.status);
+                console.error('응답 데이터:', error.response.data);
+                console.error('응답 헤더:', error.response.headers);
+
+                if (error.response.status === 401) {
+                    console.error('토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해 주세요.');
+                    window.location.href = '/login';
+                } else {
+                    console.error('식사 기록 제출 오류:', error.response.data);
+                }
             } else {
-                addMealData(Date.now().toString(), newMeal); // Create new meal record
+                console.error('식사 기록 제출 오류:', error.message);
             }
-            navigate('/meal-guide', { state: { selectedDate: date } }); // Navigate to meal-guide page with selectedDate
         }
     };
 
     const handleImageUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
-            setMealImage(URL.createObjectURL(file));
+            setPhotoUrl(URL.createObjectURL(file));
         }
     };
 
     const handleFeelingClick = (feeling) => {
-        setActiveFeeling(feeling);
-    };
-
-    const handleTimeChange = (newTime) => {
-        const newDate = new Date();
-        const [hours, minutes] = newTime.split(':');
-        newDate.setHours(parseInt(hours, 10));
-        newDate.setMinutes(parseInt(minutes, 10));
-        setTime(formatTime(newDate));
-    };
-
-    const toggleTimePicker = () => {
-        setIsTimePickerOpen(!isTimePickerOpen);
+        setFeeling(feeling.toUpperCase());
     };
 
     const handleMenuChange = (event) => {
-        setMenu(event.target.value);
+        setMenuName(event.target.value);
     };
 
     const handleOtherInputChange = (event, type) => {
-        if (type === 'who') {
+        if (type === 'eatingWith') {
             setOtherWho(event.target.value);
-        } else if (type === 'where') {
+        } else if (type === 'eatingWhere') {
             setOtherWhere(event.target.value);
         }
     };
 
     const isFormComplete = () => {
-        return activeMeal && activeWho && activeWhere && activeFeeling && menu;
+        return eatingType && eatingWith && eatingWhere && feeling && menuName;
     };
 
     return (
@@ -161,35 +170,27 @@ const MealRecord = () => {
             <form className="record-form">
                 <div className="time-group">
                     <label className="time-label">시간</label>
-                    <div className="time-display">
-                        <span className='record-time'>{time}</span>
-                        <img className="time-icon" onClick={toggleTimePicker} />
-                    </div>
-                    {isTimePickerOpen && (
-                        <div className="time-picker-container">
-                            <TimePicker
-                                value={time}
-                                onChange={handleTimeChange}
-                                style={{ marginTop: '10px' }}
-                                className="custom-time-picker"
-                            />
-                        </div>
-                    )}
+                    <input 
+                        type="time" 
+                        value={time} 
+                        onChange={(e) => setTime(e.target.value)} 
+                        className="time-input" 
+                    />
                 </div>
                 <div className="meal-group">
                     <label>식사 종류</label>
                     <div className="options">
-                        {['breakfast', 'lunch', 'dinner', 'snack', 'dessert'].map(meal => (
+                        {['BREAKFAST', 'LUNCH', 'DINNER', 'LATENIGHT', 'SNACK'].map(mealType => (
                             <div
-                                key={meal}
-                                className={`option ${activeMeal === meal ? 'active' : ''}`}
-                                onClick={() => handleOptionClick('meal', meal)}
+                                key={mealType}
+                                className={`option ${eatingType === mealType ? 'active' : ''}`}
+                                onClick={() => handleOptionClick('eatingType', mealType)}
                             >
-                                {meal === 'breakfast' && '아침'}
-                                {meal === 'lunch' && '점심'}
-                                {meal === 'dinner' && '저녁'}
-                                {meal === 'snack' && '야식'}
-                                {meal === 'dessert' && '간식'}
+                                {mealType === 'BREAKFAST' && '아침'}
+                                {mealType === 'LUNCH' && '점심'}
+                                {mealType === 'DINNER' && '저녁'}
+                                {mealType === 'LATENIGHT' && '야식'}
+                                {mealType === 'SNACK' && '간식'}
                             </div>
                         ))}
                     </div>
@@ -199,78 +200,84 @@ const MealRecord = () => {
                     <textarea
                         placeholder="메뉴명을 입력하세요."
                         rows="2"
-                        value={menu}
+                        value={menuName}
                         onChange={handleMenuChange}
                     />
-                    <input type="file" id="image-upload" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                    <input 
+                        type="file" 
+                        id="image-upload" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                        style={{ display: 'none' }} 
+                    />
                     <label htmlFor="image-upload" className="upload-btn">
-                        {mealImage ? <img src={mealImage} alt="Meal" className="uploaded-image" /> : <div className="upload-placeholder" />}
+                        {photoUrl ? <img src={photoUrl} alt="Meal" className="uploaded-image" /> : <div className="upload-placeholder" />}
                     </label>
                 </div>
                 <div className="who-group">
                     <label>누구와 먹었나요?</label>
                     <div className="options">
-                        {['alone', 'friends', 'partner', 'colleague', 'other'].map(who => (
+                        {['ALONE', 'FRIEND', 'PARTNER', 'COLLEAGUE', 'OTHER'].map(who => (
                             <div
                                 key={who}
-                                className={`option ${activeWho === who ? 'active' : ''}`}
-                                onClick={() => handleOptionClick('who', who)}
+                                className={`option ${eatingWith === who ? 'active' : ''}`}
+                                onClick={() => handleOptionClick('eatingWith', who)}
                             >
-                                {who === 'alone' && '혼자'}
-                                {who === 'friends' && '친구'}
-                                {who === 'partner' && '연인'}
-                                {who === 'colleague' && '직장동료'}
-                                {who === 'other' && '기타'}
+                                {who === 'ALONE' && '혼자'}
+                                {who === 'FRIEND' && '친구'}
+                                {who === 'PARTNER' && '연인'}
+                                {who === 'COLLEAGUE' && '직장동료'}
+                                {who === 'OTHER' && '기타'}
                             </div>
                         ))}
                     </div>
-                    {activeWho === 'other' && (
+                    {eatingWith === 'OTHER' && (
                         <input
                             type="text"
                             placeholder="입력"
                             className="other-input"
                             value={otherWho}
-                            onChange={(e) => handleOtherInputChange(e, 'who')}
+                            onChange={(e) => handleOtherInputChange(e, 'eatingWith')}
                         />
                     )}
                 </div>
                 <div className="where-group">
                     <label>어디에서 먹었나요?</label>
                     <div className="options">
-                        {['home', 'restaurant', 'school', 'work', 'other'].map(where => (
+                        {['HOME', 'RESTAURANT', 'SCHOOL', 'WORK', 'OTHER'].map(where => (
                             <div
                                 key={where}
-                                className={`option ${activeWhere === where ? 'active' : ''}`}
-                                onClick={() => handleOptionClick('where', where)}
+                                className={`option ${eatingWhere === where ? 'active' : ''}`}
+                                onClick={() => handleOptionClick('eatingWhere', where)}
                             >
-                                {where === 'home' && '집'}
-                                {where === 'restaurant' && '식당'}
-                                {where === 'school' && '학교'}
-                                {where === 'work' && '직장'}
-                                {where === 'other' && '기타'}
+                                {where === 'HOME' && '집'}
+                                {where === 'RESTAURANT' && '식당'}
+                                {where === 'SCHOOL' && '학교'}
+                                {where === 'WORK' && '직장'}
+                                {where === 'OTHER' && '기타'}
                             </div>
                         ))}
                     </div>
-                    {activeWhere === 'other' && (
+                    {eatingWhere === 'OTHER' && (
                         <input
                             type="text"
                             placeholder="입력"
                             className="other-input"
                             value={otherWhere}
-                            onChange={(e) => handleOtherInputChange(e, 'where')}
+                            onChange={(e) => handleOtherInputChange(e, 'eatingWhere')}
                         />
                     )}
                 </div>
                 <div className="emotion-group">
                     <label>식사 전 기분은 어때요?</label>
                     <div className="meal-feelings">
-                        {Object.keys(emotions).map(feeling => (
+                        {Object.keys(emotions).map(feelingKey => (
                             <div
-                                key={feeling}
-                                className={`feeling feeling-${feeling} ${activeFeeling === feeling ? 'active' : ''}`}
-                                onClick={() => handleFeelingClick(feeling)}
+                                key={feelingKey}
+                                className={`feeling feeling-${feelingKey} ${feeling === feelingKey.toUpperCase() ? 'active' : ''}`}
+                                onClick={() => handleFeelingClick(feelingKey)}
                             >
-                                <span>{emotions[feeling].text}</span>
+                                <span>{emotions[feelingKey].text}</span>
                             </div>
                         ))}
                     </div>

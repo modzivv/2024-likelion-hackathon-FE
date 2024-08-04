@@ -298,59 +298,59 @@
     margin-top: 30px;
 }
 
-.feeling-comfortable {
+.feeling-COMFORTABLE {
     background-image: url(../../assets/icon-mood-smile.png);
 }
 
-.feeling-comfortable.active {
+.feeling-COMFORTABLE.active {
     background-image: url(../../assets/icon-mood-smile-filled.png);
 }
 
-.feeling-joyful {
+.feeling-HAPPY {
     background-image: url(../../assets/icon-mood-happy.png);
 }
 
-.feeling-joyful.active {
+.feeling-HAPPY.active {
     background-image: url(../../assets/icon-mood-happy-filled.png);
 }
 
-.feeling-neutral {
-    background-image: url(../../assets/icon-mood-empty.png);
+.feeling-EASY {
+    background-image: url(../../assets/icon-mood-empty-2.png);
 }
 
-.feeling-neutral.active {
+.feeling-EASY.active {
     background-image: url(../../assets/icon-mood-empty-filled.png);
 }
 
-.feeling-guilt {
+.feeling-GUILT {
     background-image: url(../../assets/icon-mood-sad.jpg);
 }
 
-.feeling-guilt.active {
+.feeling-GUILT.active {
     background-image: url(../../assets/icon-mood-sad-filled.png);
 }
 
-.feeling-irritated {
+.feeling-IRRITATE {
     background-image: url(../../assets/icon-mood-angry.png);
 }
 
-.feeling-irritated.active {
+.feeling-IRRITATE.active {
     background-image: url(../../assets/icon-mood-angry-filled.png);
 }
 
-.feeling-anxious {
+.feeling-ANXIOUS {
     background-image: url(../../assets/icon-mood-wrrr.png);
 }
 
-.feeling-anxious.active {
+.feeling-ANXIOUS.active {
     background-image: url(../../assets/icon-mood-wrrr-filled.png);
 }
 
-.feeling-lonely {
+.feeling-LONELY {
     background-image: url(../../assets/icon-mood-confuzed.png);
 }
 
-.feeling-lonely.active {
+.feeling-LONELY.active {
     background-image: url(../../assets/icon-mood-confuzed-filled.png);
 }
 

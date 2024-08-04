@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { MealProvider } from '../../MealContext'; // MealProvider 사용
+import { MealProvider } from '../../MealContext';
 import './App.css';
 
 import Settings from '../../pages/Settings/Settings';
@@ -21,6 +21,7 @@ import MealRecord from '../../pages/MealRecord/MealRecord';
 import MealGuide from '../../pages/MealGuide/MealGuide';
 import MealEnd from '../../pages/MealEnd/MealEnd';
 import CombinedMealReport from '../../pages/CombinedMealReport/CombinedMealReport';
+import Oauth2RedirectHandler from '../../components/Oauth2RedirectHandler';
 
 function App() {
 
@@ -40,7 +41,7 @@ function App() {
             <Route path="/meal-record" element={<MealRecord />} />
             <Route path="/meal-guide" element={<MealGuide />} />
             <Route path="/meal-end" element={<MealEnd />} />
-            <Route path="/meal-report/:mealId" element={<CombinedMealReport />} />
+            <Route path="/combined-meal-report" element={<CombinedMealReport />} />
             <Route path='/mypage' element={
               <>
                 <UserInfo name='김예원' daysManaged={72} />
@@ -54,6 +55,7 @@ function App() {
             <Route path='/settings/profile' element={<SettingsProfile />} />
             <Route path='/settings/password' element={<SettingsPassword />} />
             <Route path='/praisemyself' element={<PraiseMyself />} />
+            <Route path="/oauth2/redirect" element={<Oauth2RedirectHandler />} />
           </Routes>
         </div>
       </Router>

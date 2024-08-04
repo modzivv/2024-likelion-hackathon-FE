@@ -260,7 +260,7 @@
 
 .MealReport {
     width: 358px;
-    height: 184px;
+    height: 160px;
     flex-shrink: 0;
     border-radius: 24px;
     background: var(--gray-00);
@@ -270,7 +270,7 @@
     align-items: flex-start;
     padding: 20px;
     box-sizing: border-box;
-    margin-top: 20px; /* 데일리 퀴즈와의 간격 */
+    margin-top: 20px;
   }
   
   .MealReport .meal-header {
@@ -278,6 +278,7 @@
     justify-content: space-between;
     width: 100%;
     margin-bottom: 10px;
+    margin-top: -20px;
   }
   
   .MealReport .meal-title {
@@ -290,18 +291,42 @@
   }
   
   .MealReport .meal-icon {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     background-size: cover;
     background-repeat: no-repeat;
-    background-image: url(../../assets/icon-mood-wrrr.png); /* 실제 이미지 경로로 변경 */
     margin-right: 10px;
+  }
+  
+  .MealReport .meal-icon.BREAKFAST {
+    background-image: url('../../assets/icon-breakfast.png'); /* 실제 이미지 경로로 변경 */
+  }
+  
+  .MealReport .meal-icon.LUNCH {
+    background-image: url('../../assets/icon-lunch.png'); /* 실제 이미지 경로로 변경 */
+  }
+  
+  .MealReport .meal-icon.DINNER {
+    background-image: url('../../assets/icon-dinner.png'); /* 실제 이미지 경로로 변경 */
+  }
+
+  .MealReport .meal-icon.SNACK {
+    background-image: url('../../assets/icon-snack.png'); /* 실제 이미지 경로로 변경 */
+  }
+
+  .MealReport .meal-icon.LATENIGHT {
+    background-image: url('../../assets/icon-latenight.png'); /* 실제 이미지 경로로 변경 */
   }
   
   .MealReport .meal-time {
     font-family: Pretendard;
     font-size: 16px;
     color: var(--gray-50);
+  }
+
+  .MealReport .meal-end-time {
+    font-size: 18px;
+    font-weight: bold;
   }
   
   .MealReport .meal-content {
@@ -324,20 +349,79 @@
     margin-right: 5px;
   }
   
-  .MealReport .meal-emoji-before {
-    background-image: url(../../assets/icon-mood-angry.png); /* 실제 이미지 경로로 변경 */
+  .MealReport .meal-emoji-before.COMFORTABLE {
+    background-image: url(../../assets/icon-mood-smile-filled.png); /* 실제 이미지 경로로 변경 */
   }
   
-  .MealReport .meal-emoji-after {
-    background-image: url(../../assets/icon-mood-empty.png); /* 실제 이미지 경로로 변경 */
+ 
+  .MealReport .meal-emoji-after.COMFORTABLE {
+    background-image: url(../../assets/icon-mood-smile-filled.png); /* 실제 이미지 경로로 변경 */
   }
+  
+
+  .MealReport .meal-emoji-before.HAPPY {
+    background-image: url(../../assets/icon-mood-happy-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.HAPPY {
+    background-image: url(../../assets/icon-mood-happy-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
+
+  .MealReport .meal-emoji-before.EASY {
+    background-image: url(../../assets/icon-mood-empty-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.EASY {
+    background-image: url(../../assets/icon-mood-empty-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
+
+  .MealReport .meal-emoji-before.GUILT {
+    background-image: url(../../assets/icon-mood-sad-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.GUILT {
+    background-image: url(../../assets/icon-mood-sad-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
+
+  .MealReport .meal-emoji-before.IRRITATE {
+    background-image: url(../../assets/icon-mood-angry-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.IRRITATE {
+    background-image: url(../../assets/icon-mood-angry-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
+  .MealReport .meal-emoji-before.ANXIOUS {
+    background-image: url(../../assets/icon-mood-wrrr-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.ANXIOUS {
+    background-image: url(../../assets/icon-mood-wrrr-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
+  .MealReport .meal-emoji-before.LONELY {
+    background-image: url(../../assets/icon-mood-confuzed-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+  
+  
+  .MealReport .meal-emoji-after.LONELY {
+    background-image: url(../../assets/icon-mood-confuzed-filled.png); /* 실제 이미지 경로로 변경 */
+  }
+
   
   .MealReport .meal-description {
     font-family: Pretendard;
     font-size: 16px;
     color: var(--gray-90);
     display: flex;
-    align-items: center;
   }
   
   .MealReport .meal-toast-button {
@@ -348,6 +432,12 @@
     font-size: 14px;
     margin-left: 10px;
     cursor: pointer;
+  }
+  
+  .MealReport .meal-label {
+    font-size: 12px;
+    color: var(--gray-50);
+    margin-left: 5px;
   }
   
 

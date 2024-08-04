@@ -3,53 +3,101 @@ import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
+import 'moment/locale/ko'; // 한국어 로케일 가져오기
+import axios from 'axios';
 import '../../pages/Main/main.css';
-import { useMealContext } from '../../MealContext';
+
+moment.locale('ko'); // 한국어 로케일 설정
 
 const mealTypes = {
-  breakfast: '아침',
-  lunch: '점심',
-  dinner: '저녁',
-  snack: '야식',
-  dessert: '간식'
-};
-
-const emotions = {
-  comfortable: { text: '편안해요' },
-  joyful: { text: '즐거워요' },
-  neutral: { text: '무난해요' },
-  guilt: { text: '죄책감들어요' },
-  irritated: { text: '짜증나요' },
-  anxious: { text: '불안해요' },
-  lonely: { text: '외로워요' }
-};
-
-const symptoms = {
-  vomit: '구토',
-  constipation: '변비약 복용',
-  binge: '폭식',
-  reduce: '양 줄이기',
-  spit: '씹고 뱉기',
-  dietPills: '다이어트약 복용',
-  exercise: '과한 운동',
-  other: '기타',
-  none: '증상이 없었어요!'
+  BREAKFAST: '아침식사',
+  LUNCH: '점심식사',
+  DINNER: '저녁식사',
+  SNACK: '간식',
+  LATENIGHT: '야식'
 };
 
 function MainApp() {
   const [view, setView] = useState('week');
   const [date, setDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [meals, setMeals] = useState([]);
+  const [mealDetails, setMealDetails] = useState(null); // 식사 상세 정보를 저장할 상태
   const navigate = useNavigate();
-  const { mealData } = useMealContext();
+
+  // 사용자 이름 가져오기
+  const name = localStorage.getItem('name') || '사용자';
+
+  // 토큰 유효성 검사 및 식사 기록 가져오기
+  useEffect(() => {
+    const fetchMeals = async () => {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+        console.log('식사 기록 가져오기 날짜:', formattedDate);
+
+        const response = await axios.get(`http://localhost:8080/api/fooddiaries/${formattedDate}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        setMeals(response.data);
+      } catch (err) {
+        console.error('API 요청 중 오류 발생:', err.response?.data || err.message);
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('jwtToken');
+          navigate('/login');
+        }
+      }
+    };
+
+    fetchMeals();
+  }, [selectedDate, navigate]);
+
+  const fetchMealDetails = async (date, foodDiaryId) => {
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+  
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    try {
+      const response = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${formattedDate}/${foodDiaryId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+  
+      console.log('Full response object:', response); // 전체 응답 객체 로그
+      console.log('Response data:', response.data); // 데이터 로그
+  
+      setMealDetails(response.data);
+      navigate('/combined-meal-report', { state: { mealDetails: response.data } });
+    } catch (err) {
+      if (err.response) {
+        console.error('API 요청 중 오류 발생:', err.response.data);
+      } else {
+        console.error('API 요청 중 오류 발생:', err.message);
+      }
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('jwtToken');
+        navigate('/login');
+      }
+    }
+  };
+  
 
   const handleViewChange = (event) => {
     setView(event.target.value);
   };
 
-  const handleButtonClick = (page, mealId = null) => {
-    if (mealId) {
-      navigate(`/meal-report/${mealId}`);
+  // 식사 기록 클릭 시 상세 정보 가져오기
+  const handleButtonClick = (page, foodDiaryId) => {
+    if (foodDiaryId) {
+      fetchMealDetails(foodDiaryId); // 식사 기록 ID만 넘겨줍니다
     } else {
       navigate(`/${page}`, { state: { selectedDate } });
     }
@@ -85,41 +133,61 @@ function MainApp() {
     }
   }, [selectedDate, view]);
 
-  const getMealForDate = (date) => {
-    return Object.keys(mealData).filter(id => moment(mealData[id].date).isSame(moment(date), 'day'));
+  const formatTime = (time) => {
+    const momentTime = moment(time);
+    if (!momentTime.isValid()) {
+      return null; // Invalid Date일 경우 null 반환
+    }
+    const formattedTime = momentTime.format('A hh:mm'); // 오전/오후 및 시간 포맷
+    return formattedTime.replace('AM', '오전').replace('PM', '오후'); // 한국어로 변환
   };
 
-  const renderMealReport = (mealId) => {
-    const meal = mealData[mealId];
-    if (!meal) return null;
-
-    const formattedTime = moment(meal.time, 'HH:mm').format('A hh시 mm분');
-
-    return (
-      <div className="MealReport" onClick={() => handleButtonClick('meal-report', mealId)} key={mealId}>
-        <div className="meal-header">
-          <div className="meal-title">
-            <span className="meal-icon" />
-            {mealTypes[meal.mealType]}
+  const renderMealReports = () => {
+    console.log('식사 기록:', meals); // meals 값 확인
+    
+    return meals.map(meal => {
+      const formattedTimeKR = formatTime(meal.time); // 시간 포맷 변경
+      const formattedEndTimeKR = formatTime(meal.endTime); // 식사 종료 시간 포맷 변경
+  
+      return (
+        <div 
+          className="MealReport" 
+          onClick={() => handleButtonClick('meal-report', meal.foodDiaryId)} 
+          key={meal.foodDiaryId}
+        >
+          <div className="meal-header">
+            <div className="meal-title">
+              <span className={`meal-icon ${meal.eatingType}`} />
+              {mealTypes[meal.eatingType]}
+            </div>
+            {formattedTimeKR && <div className="meal-time">{formattedTimeKR}</div>}
+            {formattedEndTimeKR && <div className="meal-end-time">{formattedEndTimeKR}</div>}
           </div>
-          <div className="meal-time">{formattedTime}</div>
+          <div className="meal-content">
+            <div className="meal-status">
+              <span className={`meal-emoji meal-emoji-before ${meal.feeling}`} />
+              <span className={`meal-emoji meal-emoji-after ${meal.afterFeeling}`} />
+            </div>
+            <div className="meal-description">
+              {meal.menuName}
+              {meal.symptoms && meal.symptoms.length > 0 && (
+                <button className="meal-toast-button">
+                  {meal.symptoms.join(', ')}
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="meal-label-group">
+            <span className="meal-label">식사 전</span>
+            <span className="meal-label">식사 후</span>
+          </div>
         </div>
-        <div className="meal-content">
-          <div className="meal-status">
-            <span className={`meal-emoji meal-emoji-before ${meal.feeling}`} />
-            <span className={`meal-emoji meal-emoji-after ${meal.afterFeeling}`} />
-          </div>
-          <div className="meal-description">
-            {meal.menu}
-            <button className="meal-toast-button">{symptoms[meal.symptom]}</button>
-          </div>
-        </div>
-      </div>
-    );
+      );
+    });
   };
 
   const handleStartMeal = () => {
-    navigate('/meal-record', { state: { selectedDate, initialTime: new Date() } }); // initialTime 추가
+    navigate('/meal-record', { state: { selectedDate, initialTime: new Date() } });
   };
 
   return (
@@ -134,7 +202,7 @@ function MainApp() {
         </div>
         <div className="calendar-container">
           <div className="calendar-header">
-            <span>{selectedDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
+            <span>{moment(selectedDate).format('YYYY년 M월 D일 dddd')}</span>
             <select value={view} onChange={handleViewChange}>
               <option value="week">주간</option>
               <option value="month">월간</option>
@@ -174,7 +242,7 @@ function MainApp() {
               <div className="week-days">
                 {daysOfWeek.map(day => (
                   <div
-                    key={day}
+                    key={moment(day).format('YYYY-MM-DD')} // key 속성 추가
                     className={`day-cell ${moment(day).isSame(selectedDate, 'day') ? 'selected' : ''}`}
                     onClick={() => handleDayClick(day)}
                   >
@@ -187,7 +255,7 @@ function MainApp() {
         </div>
 
         <div className="daily-quiz">
-          <div className='meal-guide'>안녕하세요, OOO님~
+          <div className='meal-guide'>안녕하세요, {name}님~
             <br />
             오늘의 나에게 칭찬할 점을 남겨주세요!</div>
           <button
@@ -196,12 +264,12 @@ function MainApp() {
           </button>
         </div>
 
-        {getMealForDate(selectedDate).map(mealId => renderMealReport(mealId))}
+        {renderMealReports()}
 
         <div className="record-button-container">
           <button
             className="record-button"
-            onClick={handleStartMeal}> {/* Change to handleStartMeal */}
+            onClick={handleStartMeal}>
           </button>
         </div>
       </div>
