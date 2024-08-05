@@ -17,20 +17,54 @@ const mealTypes = {
   LATENIGHT: '야식'
 };
 
+const symptoms = {
+  VOMIT: '구토',
+  MEDICINE: '변비약 복용',
+  BINGE: '폭식',
+  REDUCE: '양 줄이기',
+  SPIT: '씹고 뱉기',
+  DIETMEDICINE: '다이어트약 복용',
+  EXERCISE: '과한 운동',
+  OTHER: '기타',
+  NOTHING: '증상이 없었어요!'
+};
+
+// 증상 코드를 한국어로 변환하는 함수
+const translateSymptoms = (symptomsArray) => {
+  return symptomsArray.map(symptom => symptoms[symptom] || symptom);
+};
+
 function MainApp() {
   const [view, setView] = useState('week');
   const [date, setDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [meals, setMeals] = useState([]);
   const [mealDetails, setMealDetails] = useState(null); // 식사 상세 정보를 저장할 상태
+  const [userName, setUserName] = useState('사용자'); // 사용자 이름 상태 추가
   const navigate = useNavigate();
 
-  // 사용자 이름 가져오기
-  const name = localStorage.getItem('name') || '사용자';
+   // 사용자 이름 가져오기
+   const fetchUserInfo = async () => {
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await axios.get('http://localhost:8080/api/main', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      setUserName(response.data.name); // 사용자 이름 상태 업데이트
+    } catch (error) {
+      console.error('사용자 정보를 가져오는 중 오류 발생:', error.message);
+      navigate('/login');
+    }
+  };
 
   // 토큰 유효성 검사 및 식사 기록 가져오기
   useEffect(() => {
-    
     const fetchMeals = async () => {
       const token = localStorage.getItem('jwtToken');
       if (!token) {
@@ -46,7 +80,29 @@ function MainApp() {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        setMeals(response.data);
+        console.log('식사 시작하기에 저장된 값 : ', response.data);
+
+        // 식사 끝내기에 저장된 정보를 포함 시키는 코드
+        const mealsWithDetails = await Promise.all(response.data.map(async (meal) => {
+          try {
+            const detailResponse = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${formattedDate}/${meal.id}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            console.log('식사 시작하기 + 식사 끝내기:', detailResponse.data); // detailResponse 출력
+
+            return {
+              ...meal,
+              afterFeeling: detailResponse.data.afterFeeling,
+              symptoms: translateSymptoms(detailResponse.data.symptoms) // 증상 변환 적용
+            };
+          } catch (error) {
+            console.error('상세 정보 요청 중 오류 발생:', error.response?.data || error.message);
+            return meal;
+          }
+        }));
+
+        setMeals(mealsWithDetails); // 추가된 `afterFeeling`과 `symptoms`가 포함된 식사 기록 상태로 설정
       } catch (err) {
         console.error('API 요청 중 오류 발생:', err.response?.data || err.message);
         if (err.response && err.response.status === 401) {
@@ -57,6 +113,7 @@ function MainApp() {
     };
 
     fetchMeals();
+    fetchUserInfo();
   }, [selectedDate, navigate]);
 
   const fetchMealDetails = async (date, foodDiaryId) => {
@@ -65,18 +122,28 @@ function MainApp() {
       navigate('/login');
       return;
     }
-  
+
     const formattedDate = moment(date).format('YYYY-MM-DD');
     try {
       const response = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${formattedDate}/${foodDiaryId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-  
+
       console.log('Full response object:', response); // 전체 응답 객체 로그
       console.log('Response data:', response.data); // 데이터 로그
-  
-      setMealDetails(response.data);
-      navigate('/combined-meal-report', { state: { mealDetails: response.data } });
+
+      const data = response.data;
+
+      // 필요한 데이터만 추출하여 상태 설정
+      setMealDetails({
+        foodDiaryId: data.foodDiaryId,
+        feeling: data.feeling,
+        menuName: data.menuName,
+        afterFeeling: data.afterFeeling,
+        symptoms: translateSymptoms(data.symptoms) // 증상 변환 적용
+      });
+
+      navigate('/combined-meal-report', { state: { mealDetails: data } });
     } catch (err) {
       if (err.response) {
         console.error('API 요청 중 오류 발생:', err.response.data);
@@ -89,16 +156,14 @@ function MainApp() {
       }
     }
   };
-  
 
   const handleViewChange = (event) => {
     setView(event.target.value);
   };
 
-  // 식사 기록 클릭 시 상세 정보 가져오기
   const handleButtonClick = (page, foodDiaryId) => {
     if (foodDiaryId) {
-      fetchMealDetails(foodDiaryId); // 식사 기록 ID만 넘겨줍니다
+      fetchMealDetails(selectedDate, foodDiaryId); // 선택된 날짜와 식사 기록 ID를 넘겨줍니다
     } else {
       navigate(`/${page}`, { state: { selectedDate } });
     }
@@ -144,17 +209,16 @@ function MainApp() {
   };
 
   const renderMealReports = () => {
-    console.log('식사 기록:', meals); // meals 값 확인
-    
     return meals.map(meal => {
       const formattedTimeKR = formatTime(meal.time); // 시간 포맷 변경
       const formattedEndTimeKR = formatTime(meal.endTime); // 식사 종료 시간 포맷 변경
-  
+      const symptomsInKorean = translateSymptoms(meal.symptoms); // 증상 변환 적용
+
       return (
         <div 
           className="MealReport" 
-          onClick={() => handleButtonClick('meal-report', meal.foodDiaryId)} 
-          key={meal.foodDiaryId}
+          onClick={() => handleButtonClick(meal.id)} // foodDiaryId를 meal.id로 변경
+          key={meal.id} // foodDiaryId를 meal.id로 변경
         >
           <div className="meal-header">
             <div className="meal-title">
@@ -172,20 +236,25 @@ function MainApp() {
             <div className="meal-description">
               {meal.menuName}
               {meal.symptoms && meal.symptoms.length > 0 && (
-                <button className="meal-toast-button">
-                  {meal.symptoms.join(', ')}
-                </button>
+                <div className="meal-symptoms">
+                  {symptomsInKorean.map((symptom, index) => (
+                    <button key={index} className="meal-toast-button">
+                      {symptom}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </div>
           <div className="meal-label-group">
-            <span className="meal-label">식사 전</span>
-            <span className="meal-label">식사 후</span>
+            <span className="meal-label-before">식사 전</span>
+            <span className="meal-label-after">식사 후</span>
           </div>
         </div>
       );
     });
   };
+
 
   const handleStartMeal = () => {
     navigate('/meal-record', { state: { selectedDate, initialTime: new Date() } });
@@ -256,7 +325,7 @@ function MainApp() {
         </div>
 
         <div className="daily-quiz">
-          <div className='meal-guide'>안녕하세요, {name}님~
+          <div className='meal-guide'>안녕하세요, {userName}님~
             <br />
             오늘의 나에게 칭찬할 점을 남겨주세요!</div>
           <button
