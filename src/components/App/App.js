@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { MealProvider } from '../../MealContext'; // MealProvider 사용
+import { MealProvider } from '../../MealContext';
 import './App.css';
 
 import Settings from '../../pages/Settings/Settings';
@@ -12,6 +12,7 @@ import PositiveMealAnalysis from '../../pages/MyPage/PositiveMealAnalysis';
 import TriggerAnalysis from '../../pages/MyPage/TriggerAnalysis';
 import UserInfo from '../../pages/MyPage/UserInfo';
 import WeeklyReport from '../../pages/MyPage/WeeklyReport';
+import MyPage from '../../pages/MyPage/MyPage'; // 새로운 MyPage 컴포넌트
 
 import Login from '../../pages/Login/Login'; 
 import Join from '../../pages/Join/Join'; 
@@ -21,12 +22,9 @@ import MealRecord from '../../pages/MealRecord/MealRecord';
 import MealGuide from '../../pages/MealGuide/MealGuide';
 import MealEnd from '../../pages/MealEnd/MealEnd';
 import CombinedMealReport from '../../pages/CombinedMealReport/CombinedMealReport';
+import Oauth2RedirectHandler from '../../components/Oauth2RedirectHandler';
 
 function App() {
-
-  const startDate = '7.22';
-  const endDate = '7.28';
-
   return (
     <MealProvider>
       <Router>
@@ -41,24 +39,16 @@ function App() {
             <Route path="/meal-guide" element={<MealGuide />} />
             <Route path="/meal-end" element={<MealEnd />} />
             <Route path="/meal-report/:mealId" element={<CombinedMealReport />} />
-            <Route path='/mypage' element={
-              <>
-                <UserInfo name='김예원' daysManaged={72} />
-                <WeeklyReport startDate={startDate} endDate={endDate} />
-                <TriggerAnalysis />
-                <BingeEatingAnalysis />
-                <PositiveMealAnalysis />
-              </>
-            } />
+            <Route path='/mypage' element={<MyPage />} />
             <Route path='/settings' element={<Settings />} />
             <Route path='/settings/profile' element={<SettingsProfile />} />
             <Route path='/settings/password' element={<SettingsPassword />} />
             <Route path='/praisemyself' element={<PraiseMyself />} />
+            <Route path="/oauth2/redirect" element={<Oauth2RedirectHandler />} />
           </Routes>
         </div>
       </Router>
     </MealProvider>
   );
 }
-
 export default App;

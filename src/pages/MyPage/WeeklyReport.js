@@ -1,18 +1,39 @@
-// src/components/WeeklyReport.js
 import React from 'react';
 import { Pie } from 'react-chartjs-2';
 import './WeeklyReport.css';
 
 const WeeklyReport = (props) => {
-  const { startDate, endDate } = props;
-  
+  const { startDate, endDate, weeklyEatingTypeCounts } = props;
+
+  // 식사 종류별 횟수를 추출하여 배열로 변환
+  const eatingTypeCounts = Object.values(weeklyEatingTypeCounts);
+  const eatingTypeLabels = Object.keys(weeklyEatingTypeCounts).map(type => {
+    switch (type) {
+      case 'BREAKFAST': return '아침';
+      case 'LUNCH': return '점심';
+      case 'DINNER': return '저녁';
+      case 'SNACK': return '야식';
+      case 'DESSERT': return '간식';
+      default: return '기타';
+    }
+  });
+
+  // 메시지 결정 로직
+  let message = "규칙적으로 세끼 식사를 하는게 좋아요!";
+  if (weeklyEatingTypeCounts['SNACK'] <= 1 &&
+      weeklyEatingTypeCounts['BREAKFAST'] >= 5 &&
+      weeklyEatingTypeCounts['LUNCH'] >= 5 &&
+      weeklyEatingTypeCounts['DINNER'] >= 5) {
+    message = "식사를 규칙적으로 잘 하고 있네요!";
+  }
+
   const data = {
-    labels: ['점심', '저녁', '야식'],
+    labels: eatingTypeLabels,
     datasets: [
       {
-        data: [20, 40, 40], // 임의로 데이터 입력
-        backgroundColor: ['#FFCF24', '#696A73', '#FFE589'],
-        borderWidth: 0, // 차트 사이에 있는 흰색 구분선 제거
+        data: eatingTypeCounts,
+        backgroundColor: ['#FFCF24', '#696A73', '#FFE589', '#FF8A80', '#B39DDB'],
+        borderWidth: 0,
       },
     ],
   };
@@ -23,8 +44,8 @@ const WeeklyReport = (props) => {
         display: true,
         position: 'right',
         labels: {
-          usePointStyle: true, // 원형으로 표시
-          pointStyle: 'circle', // 원형으로 표시
+          usePointStyle: true,
+          pointStyle: 'circle',
         },
       },
     },
@@ -41,7 +62,9 @@ const WeeklyReport = (props) => {
         <Pie data={data} options={options} />
       </div>
       <div className='weekly-report-message-container'>
-        <div className='weekly-report-message'>규칙적으로 세끼 식사를 하는게 좋아요!</div>
+        <div className='weekly-report-message'>
+          {message}
+        </div>
       </div>
     </div>
   );

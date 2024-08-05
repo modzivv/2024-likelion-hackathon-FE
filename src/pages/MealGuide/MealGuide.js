@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../../pages/MealGuide/meal-guide.css';
 
 const MealGuide = () => {
-    const [timeLeft, setTimeLeft] = useState(1800);
+    const [timeLeft, setTimeLeft] = useState(1800); // 30분
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
-    const { selectedDate } = location.state || { selectedDate: new Date() };
+  
+    const [date, setDate] = useState(() => {
+        const storedDate = localStorage.getItem('selectedDate');
+        console.log('로컬 스토리지에서 가져온 날짜:', storedDate); // 로컬 스토리지에서 날짜 확인
+        return storedDate ? new Date(storedDate) : new Date();
+    });
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft(prevTime => prevTime > 0 ? prevTime - 1 : 0);
+            setTimeLeft(prevTime => {
+                if (prevTime > 0) return prevTime - 1;
+                clearInterval(timer);
+                return 0;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
@@ -35,17 +43,19 @@ const MealGuide = () => {
     };
 
     const handleFinishMeal = () => {
+        const mealEndTime = new Date().toISOString();
+        localStorage.setItem('mealEndTime', mealEndTime);
+        localStorage.setItem('selectedDate', date.toISOString()); // 날짜를 로컬 스토리지에 저장
+
         setShowModal(false);
         navigate('/meal-end');
     };
-
+    
     return (
         <div className="meal-guide-container">
-            {selectedDate && (
-                <div className="meal-guide-date">
-                    {selectedDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
-                </div>
-            )}
+            <div className="meal-guide-date">
+                {date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+            </div>
             <div className="timer">{formatTime(timeLeft)}</div>
             <div className="character-container">
                 <div className="yellow-background" style={{ height: `${(timeLeft / 1800) * 100}%` }}></div>
@@ -56,9 +66,12 @@ const MealGuide = () => {
             {showModal && (
                 <div className="modal">
                     <div className="modal-content">
-                        <p>너무 빨라요! 급한 상황이 아니라면 천천히 식사를 즐겨보세요.</p>
-                        <button onClick={closeModal}>취소</button>
-                        <button onClick={handleFinishMeal}>식사 마치기</button>
+                        <p className="bold">너무 빨라요!</p>
+                        <p>급한 상황이 아니라면<br/>천천히 식사를 즐겨보세요.</p>
+                        <div className="button-container">
+                            <button onClick={closeModal}>취소</button>
+                            <button onClick={handleFinishMeal}>식사 마치기</button>
+                        </div>
                     </div>
                 </div>
             )}
