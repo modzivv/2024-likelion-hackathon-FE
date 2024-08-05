@@ -59,7 +59,7 @@ const PraiseMyself = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/compliments/create', {
+      const response = await fetch('http://localhost:8080/api/compliments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

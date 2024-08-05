@@ -20,7 +20,7 @@ const UserInfo = () => {
           return;
         }
   
-        const response = await axios.get('http://localhost:8080/members/mypage', {
+        const response = await axios.get('http://localhost:8080/api/members/mypage', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

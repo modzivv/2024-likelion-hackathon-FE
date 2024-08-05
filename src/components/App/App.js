@@ -38,21 +38,8 @@ function App() {
             <Route path="/meal-record" element={<MealRecord />} />
             <Route path="/meal-guide" element={<MealGuide />} />
             <Route path="/meal-end" element={<MealEnd />} />
-<<<<<<< HEAD
-            <Route path="/combined-meal-report" element={<CombinedMealReport />} />
-            <Route path='/mypage' element={
-              <>
-                <UserInfo name='김예원' daysManaged={72} />
-                <WeeklyReport startDate={startDate} endDate={endDate} />
-                <TriggerAnalysis />
-                <BingeEatingAnalysis />
-                <PositiveMealAnalysis />
-              </>
-            } />
-=======
             <Route path="/meal-report/:mealId" element={<CombinedMealReport />} />
             <Route path='/mypage' element={<MyPage />} />
->>>>>>> jihye
             <Route path='/settings' element={<Settings />} />
             <Route path='/settings/profile' element={<SettingsProfile />} />
             <Route path='/settings/password' element={<SettingsPassword />} />

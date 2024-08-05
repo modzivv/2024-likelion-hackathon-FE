@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import UserInfo from './UserInfo';
 import WeeklyReport from './WeeklyReport';
 import TriggerAnalysis from './TriggerAnalysis';
@@ -33,7 +33,7 @@ function MyPage() {
           return;
         }
 
-        const response = await fetch('http://localhost:8080/members/mypage', {
+        const response = await fetch('http://localhost:8080/api/members/mypage', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

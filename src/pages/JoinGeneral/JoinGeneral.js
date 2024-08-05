@@ -13,7 +13,6 @@ const JoinGeneral = () => {
   const navigate = useNavigate();
 
   const handleJoin = async () => {
-    // 입력값 유효성 검사
     if (!email || !password || !confirmPassword) {
       setError('이메일과 비밀번호를 입력해 주세요.');
       return;
@@ -34,25 +33,26 @@ const JoinGeneral = () => {
       return;
     }
   
-    setError(''); // 오류 메시지 초기화
-    setLoading(true); // 로딩 상태로 변경
+    setError('');
+    setLoading(true);
   
     try {
-      const response = await axios.post('http://localhost:8080/members/join', {
+      const response = await axios.post('http://localhost:8080/api/members/join', {
         name,
         email,
         password,
         confirmPassword
       }, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
         withCredentials: true
       });
   
       if (response.status === 201) {
-        // 성공적으로 회원가입이 되면 localStorage에 데이터 저장
         localStorage.setItem('name', name);
         localStorage.setItem('username', email);
         localStorage.setItem('password', password);
-  
         navigate('/login');
       } else {
         setError('회원가입에 실패했습니다.');
@@ -68,7 +68,7 @@ const JoinGeneral = () => {
         setError('서버에 연결할 수 없습니다.');
       }
     } finally {
-      setLoading(false); // 요청 완료 후 로딩 상태 해제
+      setLoading(false);
     }
   };
 

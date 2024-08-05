@@ -32,7 +32,8 @@ const MealRecord = () => {
     const [eatingType, setEatingType] = useState(null);
     const [eatingWith, setEatingWith] = useState(null);
     const [eatingWhere, setEatingWhere] = useState(null);
-    const [photoUrl, setPhotoUrl] = useState(null);
+    const [photoFile, setPhotoFile] = useState(null); // 이미지 파일 저장
+    const [photoUrl, setPhotoUrl] = useState(null); // 이미지 URL 저장
     const [feeling, setFeeling] = useState(null);
     const [menuName, setMenuName] = useState('');
     const [otherWho, setOtherWho] = useState('');
@@ -81,13 +82,16 @@ const MealRecord = () => {
             feeling: feeling,
         };
 
+           // FormData 객체 생성
         const formData = new FormData();
+
+        
         formData.append('foodDiaryDto', new Blob([JSON.stringify(foodDiaryDto)], { type: 'application/json' }));
 
-        const photoFileInput = document.getElementById('image-upload');
-        if (photoFileInput && photoFileInput.files.length > 0) {
-            formData.append('photoFile', photoFileInput.files[0]);
-        }
+         // 이미지 파일 추가
+        if (photoFile) {
+        formData.append('photoFile', photoFile);
+    }
 
         try {
             const formattedDate = moment(date).format('YYYY-MM-DD');
@@ -134,6 +138,7 @@ const MealRecord = () => {
         const file = event.target.files[0];
         if (file) {
             setPhotoUrl(URL.createObjectURL(file));
+            setPhotoFile(file); // 이미지 파일 설정
         }
     };
 
@@ -213,6 +218,7 @@ const MealRecord = () => {
                     <label htmlFor="image-upload" className="upload-btn">
                         {photoUrl ? <img src={photoUrl} alt="Meal" className="uploaded-image" /> : <div className="upload-placeholder" />}
                     </label>
+
                 </div>
                 <div className="who-group">
                     <label>누구와 먹었나요?</label>

@@ -24,7 +24,7 @@ const Settings = () => {
         return;
       }
 
-      const response = await axios.delete('http://localhost:8080/members/delete', {
+      const response = await axios.delete('http://localhost:8080/api/members/delete', {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
@@ -53,7 +53,7 @@ const Settings = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:8080/members/logout', {}, {
+      const response = await axios.post('http://localhost:8080/api/members/logout', {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
         }

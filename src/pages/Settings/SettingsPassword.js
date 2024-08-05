@@ -19,7 +19,7 @@ const SettingsPassword = () => {
         }
 
         // 현재 비밀번호 확인 요청
-        const response = await axios.post('http://localhost:8080/members/checkPassword', 
+        const response = await axios.post('http://localhost:8080/api/members/checkPassword', 
           { oldPassword: currentPassword },
           {
             headers: {
@@ -52,7 +52,7 @@ const SettingsPassword = () => {
         }
 
         // 비밀번호 변경 요청
-        const response = await axios.put('http://localhost:8080/members/updatePassword',
+        const response = await axios.put('http://localhost:8080/api/members/updatePassword',
           { password: newPassword, confirmPassword },
           {
             headers: {

@@ -15,7 +15,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8080/members/login', {
+      const response = await axios.post('http://localhost:8080/api/members/login', {
         username,
         password
       }, {
@@ -30,7 +30,7 @@ const Login = () => {
 
         localStorage.setItem('jwtToken', token);
 
-        console.log('Token stored:', localStorage.getItem('jwtToken')); // 저장된 토큰을 확인합니다
+        console.log('Token stored:', localStorage.getItem('jwtToken')); // Check stored token
 
         navigate('/main');
       } else {
@@ -68,20 +68,22 @@ const Login = () => {
     <div className="login-container">
       <h1 className='login-title'>로그인</h1>
       <div className="input-container">
-        <input className='login-input'
+        <input 
+          className='login-input'
           type="email"
           placeholder="이메일을 입력하세요."
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <input className='login-input'
+        <input 
+          className='login-input'
           type="password"
           placeholder="비밀번호를 입력하세요."
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      {error && <p className="error-message">{error}</p>}
+      {error && <p className='error-message'>{error}</p>}
       <p className='login-comment'>
         아직 회원이 아니신가요? <a className='login-to-join-comment' href="#!" onClick={handleJoinClick}>회원가입</a>
       </p>

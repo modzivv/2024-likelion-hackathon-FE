@@ -30,6 +30,7 @@ function MainApp() {
 
   // 토큰 유효성 검사 및 식사 기록 가져오기
   useEffect(() => {
+    
     const fetchMeals = async () => {
       const token = localStorage.getItem('jwtToken');
       if (!token) {
