@@ -285,13 +285,13 @@
     color: #000;
 }
 
-.recordFormEmotionGroupMealFeelings {
+.recordFormEmotionGroupMealFeelings, .endFormEmotionGroupMealFeelings  {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.recordFormEmotionGroupMealFeelingsFeeling {
+.recordFormEmotionGroupMealFeelingsFeeling, .endFormEmotionGroupMealFeelingsFeeling{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -305,7 +305,7 @@
     background-repeat: no-repeat;
 }
 
-.recordFormEmotionGroupMealFeelingsFeelingSpan {
+.feelingText {
     margin-top: 30px;
 }
 

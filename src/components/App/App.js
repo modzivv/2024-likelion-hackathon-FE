@@ -38,7 +38,7 @@ function App() {
             <Route path="/meal-record" element={<MealRecord />} />
             <Route path="/meal-guide" element={<MealGuide />} />
             <Route path="/meal-end" element={<MealEnd />} />
-            <Route path="/meal-report/:mealId" element={<CombinedMealReport />} />
+            <Route path="/meal-report/:id" element={<CombinedMealReport />} />
             <Route path='/mypage' element={<MyPage />} />
             <Route path='/settings' element={<Settings />} />
             <Route path='/settings/profile' element={<SettingsProfile />} />

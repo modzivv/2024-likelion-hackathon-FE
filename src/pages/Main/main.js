@@ -161,13 +161,16 @@ function MainApp() {
     setView(event.target.value);
   };
 
-  const handleButtonClick = (page, foodDiaryId) => {
-    if (foodDiaryId) {
-      fetchMealDetails(selectedDate, foodDiaryId); // 선택된 날짜와 식사 기록 ID를 넘겨줍니다
+  const handleButtonClick = (foodDiaryId) => {
+    const routes = ['mypage', 'settings', 'praisemyself'];
+  
+    if (routes.includes(foodDiaryId)) {
+      navigate(`/${foodDiaryId}`);
     } else {
-      navigate(`/${page}`, { state: { selectedDate } });
+      navigate(`/meal-report/${foodDiaryId}`);
     }
   };
+  
 
   const handleNextWeek = () => {
     const nextWeek = moment(date).add(1, 'week').toDate();
@@ -185,6 +188,7 @@ function MainApp() {
     setSelectedDate(day);
     const startOfWeek = moment(day).startOf('isoWeek').toDate();
     setDate(startOfWeek);
+    localStorage.setItem('selectedDate', moment(day).format('YYYY-MM-DD')); // 날짜 클릭시 로컬에 반영
   };
 
   const startOfWeek = moment(date).startOf('isoWeek').toDate();
@@ -209,11 +213,17 @@ function MainApp() {
   };
 
   const renderMealReports = () => {
+    // meals가 배열인지 확인
+    if (!Array.isArray(meals)) {
+      console.error('meals가 배열이 아닙니다:', meals);
+      return null; // 또는 빈 배열 반환
+    }
+  
     return meals.map(meal => {
       const formattedTimeKR = formatTime(meal.time); // 시간 포맷 변경
       const formattedEndTimeKR = formatTime(meal.endTime); // 식사 종료 시간 포맷 변경
-      const symptomsInKorean = translateSymptoms(meal.symptoms); // 증상 변환 적용
-
+      const symptomsInKorean = translateSymptoms(meal.symptoms || []); // symptoms가 undefined일 때 빈 배열로 처리
+  
       return (
         <div 
           className="MealReport" 
@@ -235,7 +245,7 @@ function MainApp() {
             </div>
             <div className="meal-description">
               {meal.menuName}
-              {meal.symptoms && meal.symptoms.length > 0 && (
+              {symptomsInKorean.length > 0 && (
                 <div className="meal-symptoms">
                   {symptomsInKorean.map((symptom, index) => (
                     <button key={index} className="meal-toast-button">
@@ -254,6 +264,7 @@ function MainApp() {
       );
     });
   };
+  
 
 
   const handleStartMeal = () => {

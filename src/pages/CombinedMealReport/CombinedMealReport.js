@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import moment from 'moment'; // moment 라이브러리 임포트
 import styles from './CombinedMealReport.module.css'; // CSS 모듈 가져오기
 
 // 감정 상태 객체
@@ -28,45 +29,66 @@ const symptoms = {
 };
 
 const CombinedMealReport = () => {
-  const { date, id } = useParams(); // URL 파라미터에서 date와 id를 가져옵니다.
+  const { id } = useParams(); // URL 파라미터에서 id를 가져옵니다.
+  const [date, setDate] = useState(moment().startOf('isoWeek').toDate()); // 기본값으로 현재 주의 시작 날짜 설정
   const [diary, setDiary] = useState(null); // 다이어리 데이터를 저장할 상태
   const [eatingType, setEatingType] = useState(''); // 식사 종류 상태
   const [menuName, setMenuName] = useState(''); // 메뉴명 상태
   const [photoUrl, setPhotoUrl] = useState(''); // 사진 URL 상태
+  const [photoFile, setPhotoFile] = useState(null); // 사진 파일 상태
   const [eatingWith, setEatingWith] = useState(''); // 함께 먹은 사람 상태
   const [eatingWhere, setEatingWhere] = useState(''); // 먹은 장소 상태
-  const [feeling, setFeeling] = useState(''); // 식사 전 기분 상태
-  const [activeFeeling, setActiveFeeling] = useState(''); // 식사 후 기분 상태
+  const [preMealFeeling, setPreMealFeeling] = useState(''); // 식사 전 기분 상태
+  const [postMealFeeling, setPostMealFeeling] = useState(''); // 식사 후 기분 상태
   const [symptomsList, setSymptomsList] = useState([]); // 증상 목록 상태
   const [memo, setMemo] = useState(''); // 메모 상태
   const [otherSymptom, setOtherSymptom] = useState(''); // 기타 증상 상태
+  const [storedDate, setStoredDate] = useState(''); // 로컬 스토리지에서 가져온 날짜 상태
   const navigate = useNavigate(); // 페이지 전환 훅
 
+  // 로컬 스토리지에서 날짜 가져오기
+  useEffect(() => {
+    const storedDate = localStorage.getItem('selectedDate');
+    if (storedDate) {
+      setStoredDate(storedDate);
+      setDate(moment(storedDate).toDate());
+    }
+    console.log(storedDate);
+  }, []);
+
+  // 날짜가 업데이트될 때 API 호출
   useEffect(() => {
     const fetchDiaryDetail = async () => {
       try {
         const token = localStorage.getItem('jwtToken'); // 로컬 스토리지에서 JWT 토큰 가져오기
-        const response = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${date}/${id}`, {
+        if (!storedDate) return; // storedDate가 없으면 API 호출 안 함
+   
+        console.log('Stored Date in fetch:', storedDate);
+        console.log('ID in fetch:', id);
+
+        const response = await axios.get(`http://localhost:8080/api/fooddiaries/detail/${moment(storedDate).format('YYYY-MM-DD')}/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = response.data;
-        setDiary(data); // 다이어리 데이터 설정
-        setEatingType(data.eatingType || ''); // 식사 종류 설정
-        setMenuName(data.menuName || ''); // 메뉴명 설정
-        setPhotoUrl(data.photoUrl || ''); // 사진 URL 설정
-        setEatingWith(data.eatingWith || ''); // 함께 먹은 사람 설정
-        setEatingWhere(data.eatingWhere || ''); // 먹은 장소 설정
-        setFeeling(data.feeling || ''); // 식사 전 기분 설정
-        setActiveFeeling(data.afterFeeling || ''); // 식사 후 기분 설정
-        setSymptomsList(data.symptoms || []); // 증상 목록 설정
-        setMemo(data.memo || ''); // 메모 설정
-      } catch (error) {
-        console.error('다이어리 상세 조회 오류:', error); // 오류 발생 시 콘솔에 오류 로그
+        console.log('상세 보기에서 가져온 데이터 : ', data);
+
+        setDiary(data);
+        setEatingType(data.eatingType || '');
+        setMenuName(data.menuName || '');
+        setPhotoUrl(data.photoUrl || ''); // URL 설정
+        setEatingWith(data.eatingWith || '');
+        setEatingWhere(data.eatingWhere || '');
+        setPreMealFeeling(data.feeling || '');
+        setPostMealFeeling(data.afterFeeling || '');
+        setSymptomsList(data.symptoms || []);
+        setMemo(data.memo || '');
+    } catch (error) {
+        console.error('다이어리 상세 조회 오류:', error);
       }
     };
 
     fetchDiaryDetail(); // 다이어리 상세 데이터 가져오기
-  }, [date, id]);
+  }, [storedDate, id]);
 
   // 옵션 클릭 핸들러
   const handleOptionClick = (setter, value) => {
@@ -77,43 +99,47 @@ const CombinedMealReport = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoUrl(reader.result); // 업로드한 이미지 URL 설정
-      };
-      reader.readAsDataURL(file);
+      const fileUrl = URL.createObjectURL(file); // 파일 URL 생성
+      setPhotoUrl(fileUrl); // 이미지 URL 설정
+      setPhotoFile(file); // 선택한 파일 상태 업데이트
     }
   };
-
+  
   // 수정 핸들러
   const handleEdit = async () => {
     try {
-      const updatedData = {
-        eatingType,
-        menuName,
-        photoUrl,
-        eatingWith,
-        eatingWhere,
-        feeling,
-        afterFeeling: activeFeeling,
-        symptoms: symptomsList,
-        memo
-      };
+      const formData = new FormData();
+      formData.append('eatingType', eatingType);
+      formData.append('menuName', menuName);
+      if (photoFile) {
+        formData.append('photoFile', photoFile); // 파일 객체 추가
+      }
+      formData.append('eatingWith', eatingWith);
+      formData.append('eatingWhere', eatingWhere);
+      formData.append('feeling', preMealFeeling);
+      formData.append('afterFeeling', postMealFeeling);
+      formData.append('symptoms', JSON.stringify(symptomsList));
+      formData.append('memo', memo);
+  
       const token = localStorage.getItem('jwtToken'); // 로컬 스토리지에서 JWT 토큰 가져오기
-      await axios.put(`http://localhost:8080/api/fooddiaries/detail/${date}/${id}`, updatedData, {
-        headers: { Authorization: `Bearer ${token}` }
+      await axios.put(`http://localhost:8080/api/fooddiaries/detail/${moment(storedDate).format('YYYY-MM-DD')}/${id}`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       navigate('/main'); // 수정 후 메인 페이지로 이동
     } catch (error) {
       console.error('다이어리 수정 오류:', error); // 오류 발생 시 콘솔에 오류 로그
     }
   };
+  
 
   // 삭제 핸들러
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('jwtToken'); // 로컬 스토리지에서 JWT 토큰 가져오기
-      await axios.delete(`http://localhost:8080/api/fooddiaries/detail/${date}/${id}`, {
+      await axios.delete(`http://localhost:8080/api/fooddiaries/detail/${moment(storedDate).format('YYYY-MM-DD')}/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       navigate('/main'); // 삭제 후 메인 페이지로 이동
@@ -122,9 +148,14 @@ const CombinedMealReport = () => {
     }
   };
 
-  // 기분 클릭 핸들러
-  const handleFeelingClick = (feeling) => {
-    setActiveFeeling(feeling);
+  // 식사 전 기분 클릭 핸들러
+  const handlePreMealFeelingClick = (feelingKey) => {
+    setPreMealFeeling(feelingKey); // 상태 업데이트
+  };
+
+  // 식사 후 기분 클릭 핸들러
+  const handlePostMealFeelingClick = (feelingKey) => {
+    setPostMealFeeling(feelingKey); // 상태 업데이트
   };
 
   // 증상 클릭 핸들러
@@ -159,7 +190,7 @@ const CombinedMealReport = () => {
       <div className={styles.mealRecordContent}>
         <div className={styles.mealRecordEndContainer}>
           <div className={styles.mealRecordHeader}>
-            <span className={styles.mealRecordHeaderDate}>{diary.date}</span>
+            <span className={styles.mealRecordHeaderDate}>{moment(storedDate).format('YYYY-MM-DD')}</span>
             <div className={styles.mealRecordHeaderIcons}>
               <div 
                 className={`${styles.mealRecordHeaderIcon} ${styles.mealRecordHeaderCloseIcon}`} 
@@ -211,12 +242,13 @@ const CombinedMealReport = () => {
               />
               <label htmlFor="image-upload" className={styles.recordFormMenuGroupUploadBtn}>
                 {photoUrl ? 
-                  <img src={photoUrl} alt="Meal" className={styles.recordFormMenuGroupUploadedImage} /> : 
-                  <div className={styles.recordFormMenuGroupUploadPlaceholder}>
+                    <img src={photoUrl} alt="Meal" className={styles.recordFormMenuGroupUploadedImage} /> : 
+                    <div className={styles.recordFormMenuGroupUploadPlaceholder}>
                     <div className={styles.recordFormMenuGroupUploadPlaceholderBefore} />
-                  </div>
+                    </div>
                 }
-              </label>
+                </label>
+
             </div>
             <div className={styles.recordFormWhoGroup}>
               <label className={styles.recordFormLabel}>누구와 먹었나요?</label>
@@ -272,34 +304,37 @@ const CombinedMealReport = () => {
                 />
               )}
             </div>
+
             <div className={styles.recordFormEmotionGroup}>
               <label className={styles.recordFormLabel}>식사 전 기분은 어때요?</label>
               <div className={styles.recordFormEmotionGroupMealFeelings}>
                 {Object.keys(emotions).map(feelingKey => (
                   <div
                     key={feelingKey}
-                    className={`${styles.recordFormEmotionGroupMealFeelingsFeeling} ${styles[`feeling${feelingKey}`]} ${activeFeeling === feelingKey ? styles.feelingActive : ''}`}
-                    onClick={() => handleFeelingClick(feelingKey)}
+                    className={`${styles.recordFormEmotionGroupMealFeelingsFeeling} ${styles[`feeling${feelingKey}`]} ${preMealFeeling === feelingKey ? styles[`feeling${feelingKey}Active`] : ''}`}
+                    onClick={() => handlePreMealFeelingClick(feelingKey)}
                   >
-                    {emotions[feelingKey].text}
+                    <span className={styles.feelingText}>{emotions[feelingKey].text}</span>
                   </div>
                 ))}
               </div>
             </div>
+
             <div className={styles.endFormEmotionGroup}>
               <label className={styles.endFormLabel}>식사 후 기분은 어때요?</label>
-              <div className={styles.recordFormEmotionGroupMealFeelings}>
+              <div className={styles.endFormEmotionGroupMealFeelings}>
                 {Object.keys(emotions).map(feelingKey => (
                   <div
                     key={feelingKey}
-                    className={`${styles.recordFormEmotionGroupMealFeelingsFeeling} ${styles[`feeling${feelingKey}`]} ${activeFeeling === feelingKey ? styles.feelingActive : ''}`}
-                    onClick={() => handleFeelingClick(feelingKey)}
+                    className={`${styles.endFormEmotionGroupMealFeelingsFeeling} ${styles[`feeling${feelingKey}`]} ${postMealFeeling === feelingKey ? styles[`feeling${feelingKey}Active`] : ''}`}
+                    onClick={() => handlePostMealFeelingClick(feelingKey)}
                   >
-                    {emotions[feelingKey].text}
+                    <span className={styles.feelingText}>{emotions[feelingKey].text}</span>
                   </div>
                 ))}
               </div>
             </div>
+            
             <div className={styles.endFormSymptomGroup}>
               <label className={styles.symptomGroupLabel}>식사 후 증상은 있었나요?</label>
               <div className={styles.endFormOptions}>
@@ -323,8 +358,7 @@ const CombinedMealReport = () => {
                 )}
               </div>
             </div>
-            <div className={styles.memoGroup}>
-              <label className={styles.recordFormLabel}>메모</label>
+
               <textarea
                 placeholder="메모를 남겨주세요."
                 rows="4"
@@ -332,7 +366,7 @@ const CombinedMealReport = () => {
                 onChange={handleMemoChange}
                 className={styles.memoInput}
               />
-            </div>
+
             <div className={styles.actionButtons}>
               <button type="button" className={styles.editBtn} onClick={handleEdit}>수정</button>
               <button type="button" className={styles.deleteBtn} onClick={handleDelete}>삭제</button>

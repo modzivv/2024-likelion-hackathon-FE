@@ -36,8 +36,8 @@ const MealRecord = () => {
     const [photoUrl, setPhotoUrl] = useState(null); // 이미지 URL 저장
     const [feeling, setFeeling] = useState(null);
     const [menuName, setMenuName] = useState('');
-    const [otherWho, setOtherWho] = useState('');
-    const [otherWhere, setOtherWhere] = useState('');
+    const [eatingWithOther, setEatingWithOther] = useState('');
+    const [eatingWhereOther, setEatingWhereOther] = useState('');
     const [date, setDate] = useState(() => {
         return selectedDate ? new Date(selectedDate) : new Date();
     });
@@ -50,21 +50,23 @@ const MealRecord = () => {
     }, [selectedDate]);
 
     const handleOptionClick = (optionType, value) => {
+        const upperValue = value.toUpperCase();
         switch (optionType) {
             case 'eatingType':
-                setEatingType(value.toUpperCase());
+                setEatingType(upperValue);
                 break;
             case 'eatingWith':
-                setEatingWith(value.toUpperCase());
+                setEatingWith(upperValue);
                 break;
             case 'eatingWhere':
-                setEatingWhere(value.toUpperCase());
+                setEatingWhere(upperValue);
                 break;
             default:
                 break;
         }
     };
-
+    
+    
     const startMeal = async () => {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -72,27 +74,32 @@ const MealRecord = () => {
             window.location.href = '/login';
             return;
         }
-
+    
+        // 식사 기록 DTO 생성
         const foodDiaryDto = {
             time: time,
             eatingType: eatingType,
             menuName: menuName,
-            eatingWith: eatingWith,
-            eatingWhere: eatingWhere,
+            eatingWith: eatingWith === 'OTHER' ? 'OTHER' : eatingWith,
+            eatingWhere: eatingWhere === 'OTHER' ? 'OTHER' : eatingWhere,
             feeling: feeling,
+            eatingWithOther: eatingWith === 'OTHER' ? eatingWithOther : null,
+            eatingWhereOther: eatingWhere === 'OTHER' ? eatingWhereOther : null,
         };
-
-           // FormData 객체 생성
+    
+        console.log('Submitting foodDiaryDto:', foodDiaryDto); // 추가 로그
+    
+        // FormData 객체 생성
         const formData = new FormData();
-
-        
         formData.append('foodDiaryDto', new Blob([JSON.stringify(foodDiaryDto)], { type: 'application/json' }));
-
-         // 이미지 파일 추가
+    
+        // 이미지 파일 추가
         if (photoFile) {
-        formData.append('photoFile', photoFile);
-    }
+            formData.append('photoFile', photoFile);
+        }
 
+        console.log()
+    
         try {
             const formattedDate = moment(date).format('YYYY-MM-DD');
             const response = await axios.post(`http://localhost:8080/api/fooddiaries/${formattedDate}`, formData, {
@@ -102,29 +109,28 @@ const MealRecord = () => {
                 }
             });
             console.log('식사 기록이 성공적으로 제출되었습니다:', response.data);
-
+    
             const currentTime = new Date().toISOString();
             localStorage.setItem('mealStartTime', currentTime);
             localStorage.setItem('foodDiaryId', response.data.id);
             localStorage.setItem('selectedDate', date.toISOString()); // 날짜를 로컬 스토리지에 저장
-
+    
             console.log('현재 시간 로컬 스토리지에 저장됨:', currentTime);
             console.log('FoodDiaryId 로컬 스토리지에 저장됨:', response.data.id);
             console.log('저장된 날짜:', localStorage.getItem('selectedDate')); // 저장된 날짜 확인
-
+    
             navigate('/meal-guide');
-
+    
         } catch (error) {
             console.error('식사 기록 제출 오류:', error);
-
+    
             if (error.response) {
                 console.error('응답 상태:', error.response.status);
                 console.error('응답 데이터:', error.response.data);
                 console.error('응답 헤더:', error.response.headers);
-
+    
                 if (error.response.status === 401) {
                     console.error('토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해 주세요.');
-                    window.location.href = '/login';
                 } else {
                     console.error('식사 기록 제출 오류:', error.response.data);
                 }
@@ -133,6 +139,12 @@ const MealRecord = () => {
             }
         }
     };
+    
+    
+    
+    
+    
+    
 
     const handleImageUpload = (event) => {
         const file = event.target.files[0];
@@ -152,14 +164,19 @@ const MealRecord = () => {
 
     const handleOtherInputChange = (event, type) => {
         if (type === 'eatingWith') {
-            setOtherWho(event.target.value);
+            setEatingWithOther(event.target.value);
         } else if (type === 'eatingWhere') {
-            setOtherWhere(event.target.value);
+            setEatingWhereOther(event.target.value);
         }
     };
 
     const isFormComplete = () => {
-        return eatingType && eatingWith && eatingWhere && feeling && menuName;
+        // 'eatingWith'나 'eatingWhere'가 'OTHER'일 경우, 기타 입력 필드가 필요하므로 해당 값을 체크
+        return eatingType && 
+               (eatingWith || eatingWithOther) && 
+               (eatingWhere || eatingWhereOther) && 
+               feeling && 
+               menuName;
     };
 
     return (
@@ -169,7 +186,7 @@ const MealRecord = () => {
                     {formatDate(date)}
                 </span>
                 <div className="icons">
-                    <div className="icon back-icon" onClick={() => navigate('/main')} />
+                    <div className="icon close-icon" onClick={() => navigate('/main')} />
                 </div>
             </div>
             <form className="record-form">
@@ -218,62 +235,66 @@ const MealRecord = () => {
                     <label htmlFor="image-upload" className="upload-btn">
                         {photoUrl ? <img src={photoUrl} alt="Meal" className="uploaded-image" /> : <div className="upload-placeholder" />}
                     </label>
+                </div>
 
-                </div>
                 <div className="who-group">
-                    <label>누구와 먹었나요?</label>
-                    <div className="options">
-                        {['ALONE', 'FRIEND', 'PARTNER', 'COLLEAGUE', 'OTHER'].map(who => (
-                            <div
-                                key={who}
-                                className={`option ${eatingWith === who ? 'active' : ''}`}
-                                onClick={() => handleOptionClick('eatingWith', who)}
-                            >
-                                {who === 'ALONE' && '혼자'}
-                                {who === 'FRIEND' && '친구'}
-                                {who === 'PARTNER' && '연인'}
-                                {who === 'COLLEAGUE' && '직장동료'}
-                                {who === 'OTHER' && '기타'}
-                            </div>
-                        ))}
-                    </div>
-                    {eatingWith === 'OTHER' && (
-                        <input
-                            type="text"
-                            placeholder="입력"
-                            className="other-input"
-                            value={otherWho}
-                            onChange={(e) => handleOtherInputChange(e, 'eatingWith')}
-                        />
-                    )}
+                <label>누구와 먹었나요?</label>
+                <div className="options">
+                    {['ALONE', 'FRIEND', 'PARTNER', 'FAMILY', 'COLLEAGUE', 'OTHER'].map(who => (
+                        <div
+                            key={who}
+                            className={`option ${eatingWith === who ? 'active' : ''}`}
+                            onClick={() => handleOptionClick('eatingWith', who)}
+                        >
+                            {who === 'ALONE' && '혼자'}
+                            {who === 'FRIEND' && '친구'}
+                            {who === 'PARTNER' && '연인'}
+                            {who === 'FAMILY' && '가족'}
+                            {who === 'COLLEAGUE' && '직장동료'}
+                            {who === 'OTHER' && '기타'}
+                        </div>
+                    ))}
                 </div>
-                <div className="where-group">
-                    <label>어디에서 먹었나요?</label>
-                    <div className="options">
-                        {['HOME', 'RESTAURANT', 'SCHOOL', 'WORK', 'OTHER'].map(where => (
-                            <div
-                                key={where}
-                                className={`option ${eatingWhere === where ? 'active' : ''}`}
-                                onClick={() => handleOptionClick('eatingWhere', where)}
-                            >
-                                {where === 'HOME' && '집'}
-                                {where === 'RESTAURANT' && '식당'}
-                                {where === 'SCHOOL' && '학교'}
-                                {where === 'WORK' && '직장'}
-                                {where === 'OTHER' && '기타'}
-                            </div>
-                        ))}
-                    </div>
-                    {eatingWhere === 'OTHER' && (
-                        <input
-                            type="text"
-                            placeholder="입력"
-                            className="other-input"
-                            value={otherWhere}
-                            onChange={(e) => handleOtherInputChange(e, 'eatingWhere')}
-                        />
-                    )}
+                {eatingWith === 'OTHER' && (
+                    <input
+                        type="text"
+                        placeholder="입력"
+                        className="other-input"
+                        value={eatingWithOther}
+                        onChange={(e) => setEatingWithOther(e.target.value)}
+                    />
+                )}
+            </div>
+
+            <div className="where-group">
+                <label>어디에서 먹었나요?</label>
+                <div className="options">
+                    {['HOME', 'RESTAURANT', 'SCHOOL', 'WORK', 'OTHER'].map(where => (
+                        <div
+                            key={where}
+                            className={`option ${eatingWhere === where ? 'active' : ''}`}
+                            onClick={() => handleOptionClick('eatingWhere', where)}
+                        >
+                            {where === 'HOME' && '집'}
+                            {where === 'RESTAURANT' && '식당'}
+                            {where === 'SCHOOL' && '학교'}
+                            {where === 'WORK' && '직장'}
+                            {where === 'OTHER' && '기타'}
+                        </div>
+                    ))}
                 </div>
+                {eatingWhere === 'OTHER' && (
+                    <input
+                        type="text"
+                        placeholder="입력"
+                        className="other-input"
+                        value={eatingWhereOther}
+                        onChange={(e) => setEatingWhereOther(e.target.value)}
+                    />
+                )}
+            </div>
+
+
                 <div className="emotion-group">
                     <label>식사 전 기분은 어때요?</label>
                     <div className="meal-feelings">
