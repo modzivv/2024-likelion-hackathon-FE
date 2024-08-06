@@ -6,13 +6,13 @@
   font-weight: 700;
   font-size: 14px;
   color: #202023;
-  margin: 24px 0 20px 0;
+  margin: 24px 0 20px 11px;
 }
 
 .meal-container {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  margin-left: 10px;
+  gap: 12px;
 }
   
 .meal-box {
@@ -20,33 +20,51 @@
   height: 166px;
   background-color: #FFFFFF;
   border-radius: 10px;
-  padding: 3px 10px;
 }
   
 .meal-title {
   font-weight: 700;
   font-size: 13px;
+  line-height: 16.2px;
   color: #696A73;
+  margin-left: 17px;
   margin-bottom: 10px;
 }
   
 .meal-list {
+  margin-left: -10px;
   list-style: none;
-  padding: 0;
-  margin: 0;
 }
-  
+
+.meal-comment {
+  font-size: 12px;
+  text-align: center;
+}
+
 .meal-item {
+  width: 106px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 5px;
 }
-  
+
 .number {
   font-weight: 700;
   font-size: 18px;
+}
+
+.rank-1 {
   color: #FFCF24;
+}
+
+.rank-2 {
+  color: #FFDA57;
+}
+
+.rank-3 {
+  color: #FFE589;
 }
   
 .emotion {
@@ -57,19 +75,12 @@
 .count {
   font-weight: 600;
   font-size: 16px;
-  color: #FFCF24;
-}
-  
-.meal-comment {
-  font-weight: 600;
-  font-size: 14px;
-  color: #202023;
-  margin-top: 10px;
-  text-align: center;
+  color: #FFCF24 !important; 
 }
   
 .time-eating-analysis {
   margin-top: 20px;
+  margin-left: 10px;
 }
 
 .time-eating-container {

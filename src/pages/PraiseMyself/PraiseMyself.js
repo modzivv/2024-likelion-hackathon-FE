@@ -5,19 +5,19 @@ import './PraiseMyself.css';
 const guide = [
   "오늘 나에게 바뀐 점이 있나요?",
   "바뀐 점들 중 어떤 점이 가장 마음에 드나요?",
-  "그 점을 이용하여 나에게 칭찬을 남겨주세요."
+  "그 점을 이용하여 나에게 칭찬을 \n남겨주세요."
 ];
 
 const keywords = ['살', '비만', '마른', '모공', '여드름', '턱선', '볼살', '허리선', '종아리', '체형', '쌍커풀', '쌍꺼풀', '쌍카풀', '이중턱', '턱살',
-  '체지방', '팔뚝', '목선', '쇄골', '골반', '주름', '직각어꺠', '직각 어깨', '콧대', '턱 라인', '턱라인', '팔라인', '팔 라인', '다리 라인', '다리라인', '중안부', '코끝', '콧볼',
-  '마른', '오똑', '날씬', '잘록', '굵은', '굵다', '통통', '얇은', '얇다', '작은', '작다', '칙칙', '짧은', '짧다', '창백', '못생', '얼굴이 작', '비율이 좋', '비율이 안', '비율이 이상'];
+  '체지방', '팔뚝', '목선', '쇄골', '골반', '주름', '직각어깨', '콧대', '턱라인', '팔라인', '다리라인', '중안부', '코끝', '콧볼',
+  '마른', '오똑', '날씬', '잘록', '굵은', '통통', '얇은', '작은', '칙칙', '짧은', '창백', '못생', '얼굴이 작', '비율이 좋', '비율이 안', '비율이 이상'];
 
 const PraiseMyself = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(["", "", ""]);
   const [error, setError] = useState('');
   const [apiError, setApiError] = useState('');
-  const navigate = useNavigate(); // useNavigate 훅 초기화
+  const navigate = useNavigate();
 
   const handleNext = () => {
     const currentAnswer = answers[step];
@@ -32,7 +32,7 @@ const PraiseMyself = () => {
       if (step < guide.length - 1) {
         setStep(step + 1);
       } else {
-        submitCompliments();
+        setStep(step + 1); // 답변 요약 페이지
       }
     }
   };
@@ -41,7 +41,7 @@ const PraiseMyself = () => {
     const newAnswers = [...answers];
     newAnswers[step] = e.target.value;
     setAnswers(newAnswers);
-    setError(''); // 에러 메시지 초기화
+    setError('');
   };
 
   const submitCompliments = async () => {
@@ -59,7 +59,7 @@ const PraiseMyself = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/compliments/create', {
+      const response = await fetch('http://localhost:8080/api/compliments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ const PraiseMyself = () => {
 
       if (response.ok) {
         alert('칭찬 일기가 성공적으로 저장되었습니다!');
-        navigate('/main'); // 다 쓰고나면 메인으로 이동
+        navigate('/main');
       } else if (response.status === 500) {
         setApiError('이미 오늘의 칭찬 일기를 작성했어요.');
       } else {

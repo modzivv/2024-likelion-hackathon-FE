@@ -19,7 +19,7 @@ const TriggerAnalysis = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:8080/members/mypage', {
+        const response = await axios.get('http://localhost:8080/api/members/mypage', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ const TriggerAnalysis = () => {
         });
 
         if (response.status === 200) {
-          setTriggerData(response.data.weeklySymptomCounts);
+          setTriggerData(response.data.dailySymptomCounts);
         } else {
           setError('데이터를 불러오는데 실패했습니다.');
         }
@@ -40,26 +40,29 @@ const TriggerAnalysis = () => {
     fetchTriggerData();
   }, []);
 
-  const symptomMap = {
-    VOMIT: '구토',
-    MEDICINE: '변비약 복용',
-    BINGE: '폭식',
-    REDUCE: '양 줄이기',
-    SPIT: '씹고 뱉기',
-    DIETMEDICINE: '다이어트약 복용',
-    EXERCISE: '과한 운동',
-    OTHER: '기타',
-    NOTHING: '증상이 없었어요!'
+  const daysOfWeekMap = {
+    MONDAY: '월',
+    TUESDAY: '화',
+    WEDNESDAY: '수',
+    THURSDAY: '목',
+    FRIDAY: '금',
+    SATURDAY: '토',
+    SUNDAY: '일'
   };
 
-  const labels = Object.keys(symptomMap);
-  const data = labels.map(label => triggerData[label] || 0);
+  const daysOfWeek = ['월', '화', '수', '목', '금', '토', '일'];
+
+  const dayData = daysOfWeek.map(day => {
+    const englishDay = Object.keys(daysOfWeekMap).find(key => daysOfWeekMap[key] === day);
+    return triggerData[englishDay] || 0;
+  });
+
   const barData = {
-    labels: labels.map(label => symptomMap[label]),
+    labels: daysOfWeek,
     datasets: [
       {
         label: '트리거 발생 횟수',
-        data: data,
+        data: dayData,
         backgroundColor: '#FFCF24',
         borderRadius: 7,
       },

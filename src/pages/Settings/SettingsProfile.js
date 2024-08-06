@@ -21,7 +21,7 @@ const SettingsProfile = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:8080/members/mypage', {
+        const response = await axios.get('http://localhost:8080/api/members/mypage', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ const SettingsProfile = () => {
       // }
       
       
-      const response = await axios.patch('http://localhost:8080/members/updateProfile', formData, {
+      const response = await axios.patch('http://localhost:8080/api/members/updateProfile', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -108,10 +108,10 @@ const SettingsProfile = () => {
 
   return (
     <div className='settings-profile-container'>
-      <header className='settings-profile-header'>
+      <div className='settings-profile-header'>
         <img src={ic_back} alt='back' className='back-icon' onClick={() => window.history.back()} />
         <div className='settings-profile-title'>프로필 설정</div>
-      </header>
+      </div>
       <div className='profile-picture'>
         <img src={profileImage} alt='profile' className='profile-img' />
         <label htmlFor='profile-img-upload' className='camera-icon'>

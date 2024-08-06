@@ -6,13 +6,14 @@
   font-weight: 700;
   font-size: 18px;
   color: #202023;
+  margin-left: 11px;
 }
 
 .trigger-sub-title {
   font-weight: 700;
   font-size: 14px;
   color: #202023;
-  margin: 24px 0 20px 0;
+  margin: 24px 0 20px 11px;
 }
 
 .trigger-chart-container {

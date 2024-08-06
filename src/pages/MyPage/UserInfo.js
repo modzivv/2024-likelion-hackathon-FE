@@ -20,7 +20,7 @@ const UserInfo = () => {
           return;
         }
   
-        const response = await axios.get('http://localhost:8080/members/mypage', {
+        const response = await axios.get('http://localhost:8080/api/members/mypage', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -86,12 +86,12 @@ const UserInfo = () => {
         <div className='completion-status'>
           <div className='status-item'>
             <div className='status-title'>식사관리완료</div>
-            <div className='count'>{userData.totalFoodDiaryCount}회</div>
+            <div className='status-count'>{userData.totalFoodDiaryCount}회</div>
           </div>
           <img src={line_grey} alt='center-line' className='center-line' />
           <div className='status-item'>
             <div className='status-title'>칭찬 완료</div>
-            <div className='count'>{userData.complimentCnt}회</div>
+            <div className='status-count'>{userData.complimentCnt}회</div>
           </div>
         </div>
       </div>

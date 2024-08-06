@@ -12,27 +12,41 @@ const WeeklyReport = (props) => {
       case 'BREAKFAST': return '아침';
       case 'LUNCH': return '점심';
       case 'DINNER': return '저녁';
-      case 'SNACK': return '야식';
-      case 'DESSERT': return '간식';
+      case 'SNACK': return '간식';
+      case 'LATENIGHT': return '야식';
       default: return '기타';
     }
   });
 
   // 메시지 결정 로직
   let message = "규칙적으로 세끼 식사를 하는게 좋아요!";
-  if (weeklyEatingTypeCounts['SNACK'] <= 1 &&
+  if (weeklyEatingTypeCounts['LATENIGHT'] <= 1 &&
       weeklyEatingTypeCounts['BREAKFAST'] >= 5 &&
       weeklyEatingTypeCounts['LUNCH'] >= 5 &&
       weeklyEatingTypeCounts['DINNER'] >= 5) {
     message = "식사를 규칙적으로 잘 하고 있네요!";
   }
 
+  const getColor = (type) => {
+    const colors = {
+      SNACK: '#696A73',
+      BREAKFAST: '#FFF0BD',
+      LUNCH: '#FFE589',
+      DINNER: '#FFCF24',
+      LATENIGHT: '#696A73'
+    };
+    return colors[type];
+  };
+
+  // 각 식사별 색상 배열 생성
+  const backgroundColors = Object.keys(weeklyEatingTypeCounts).map(type => getColor(type));
+
   const data = {
     labels: eatingTypeLabels,
     datasets: [
       {
         data: eatingTypeCounts,
-        backgroundColor: ['#FFCF24', '#696A73', '#FFE589', '#FF8A80', '#B39DDB'],
+        backgroundColor: backgroundColors, // 색상 배열 사용
         borderWidth: 0,
       },
     ],

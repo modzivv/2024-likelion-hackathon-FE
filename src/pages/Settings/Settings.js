@@ -24,7 +24,7 @@ const Settings = () => {
         return;
       }
 
-      const response = await axios.delete('http://localhost:8080/members/delete', {
+      const response = await axios.delete('http://localhost:8080/api/members/delete', {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
@@ -53,7 +53,7 @@ const Settings = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:8080/members/logout', {}, {
+      const response = await axios.post('http://localhost:8080/api/members/logout', {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
@@ -73,10 +73,10 @@ const Settings = () => {
 
   return (
     <div className='settings-container'>
-      <header className='settings-header'>
+      <div className='settings-header'>
         <img src={ic_back} alt='back' className='back-icon' onClick={() => window.history.back()} />
         <div className='settings-title'>설정</div>
-      </header>
+      </div>
       <div className='settings-content'>
         <Link to='/settings/profile' className='settings-link' style={{ textDecoration: 'none'}}>
           <div className='settings-password'>프로필 설정</div>

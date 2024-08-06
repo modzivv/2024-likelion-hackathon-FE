@@ -33,7 +33,7 @@ function MyPage() {
           return;
         }
 
-        const response = await fetch('http://localhost:8080/members/mypage', {
+        const response = await fetch('http://localhost:8080/api/members/mypage', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
