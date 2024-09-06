@@ -1,31 +1,29 @@
 .settings-container {
     width: 100%;
     max-width: 390px;
-    margin: 0 auto;
-    box-sizing: border-box;
     background-color: #F7F7F8;
     height: 100vh;
 }
-  
+
 .settings-header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-    margin-top: 40px;
+    padding-top: 30px;
 }
-  
+
 .back-icon {
     width: 24px;
     height: 24px;
     cursor: pointer;
 }
-  
+
 .settings-title {
     font-size: 20px;
     font-weight: 600;
     margin-left: 10px;
 }
-  
+
 .settings-content {
     padding: 20px;
 }
@@ -36,7 +34,7 @@
     color: #202023;
     padding: 15px 0;
 }
-  
+
 .settings-logout {
     font-weight: 500;
     font-size: 18px;
@@ -61,7 +59,7 @@
     justify-content: center;
     align-items: center;
 }
-  
+
 .popup-inner {
     width: 320px;
     height: 208px;
@@ -69,7 +67,7 @@
     border-radius: 20px;
     text-align: center;
 }
-  
+
 .popup-inner button {
     margin: 10px;
     padding: 10px 20px;
@@ -82,6 +80,7 @@
 .popup-title {
     font-size: 16px;
     font-weight: 600;
+    margin-top: 20px;
 }
 
 .popup-detail {
@@ -99,7 +98,7 @@
     font-size: 16px;
     font-weight: 600;
 }
-  
+
 .popup-inner .delete-btn {
     width: 136px;
     height: 48px;

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../pages/JoinGeneral/JoinGeneral.css';
 
-
 const JoinGeneral = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,13 +13,16 @@ const JoinGeneral = () => {
   const handleJoin = async () => {
     if (email && password && password === confirmPassword) {
       try {
-        const response = await axios.post('https://your-api-endpoint.com/register', {
+        const response = await axios.post('http://localhost:8080/members/join', {
           name,
           email,
           password,
+          confirmPassword
+        }, {
+          withCredentials: true
         });
-        if (response.status === 200) {
-          navigate('/main');
+        if (response.status === 201) {
+          navigate('/login');
         } else {
           alert('회원가입에 실패했습니다.');
         }
@@ -41,7 +43,6 @@ const JoinGeneral = () => {
   return (
     <div className="join-general-container">
       <h1 className='join-general-title'>회원가입</h1>
-
       <div className="input-container">
         <input className='join-general-input'
           type="text"
@@ -68,7 +69,6 @@ const JoinGeneral = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
       </div>
-
       <p className='join-comment'>
         이미 회원이신가요? <a href="#!" onClick={handleLoginClick}>로그인</a>
       </p>

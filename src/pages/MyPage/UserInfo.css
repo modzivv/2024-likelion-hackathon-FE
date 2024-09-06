@@ -34,11 +34,13 @@
   background-color: #FFFFFF;
   border-radius: 13px;
 }
-  
+
 .user-img {
   width: 64px;
   height: 64px;
   margin-left: 8px;
+  border-radius: 50%;
+  object-fit: cover; /* 이미지가 박스에 맞게 조절됨 */
 }  
 
 .user-detail {
@@ -85,7 +87,7 @@
   flex: 1;
 }
 
-.count {
+.status-count {
   margin-top: 10px;
   font-weight: 600;
   font-size: 16px;
